@@ -1,8 +1,9 @@
+@import url("https://fonts.cdnfonts.com/css/futura-condensed-pt");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  --font-mono: var(--font-geist-mono), "SFMono-Regular", Consolas, monospace;
+  --font-display: "Futura Condensed PT", sans-serif;
+  --font-body: "Futura PT", sans-serif;
 }
 
 @layer base {
