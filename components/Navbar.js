@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/app/dashboard/actions";
+import { RiLoginCircleFill } from "react-icons/ri";
 
 function isActivePath(pathname, href) {
   if (href === "/") {
@@ -49,7 +50,7 @@ export default function Navbar({ actions, profile, user }) {
 
   const publicLinks = [
     { href: "/", label: "Home" },
-    { href: "/how-it-works", label: "Questions" },
+    { href: "/#questions", label: "Questions" },
   ];
 
   const privateLinks = [
@@ -59,6 +60,20 @@ export default function Navbar({ actions, profile, user }) {
   ];
 
   const links = user ? privateLinks : publicLinks;
+
+  function handleQuestionsClick(event) {
+    event.preventDefault();
+    closeMenu();
+
+    const section = document.getElementById("questions");
+
+    if (section) {
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }
 
   return (
     <nav className="relative border-b border-zinc-800/80 bg-[#080b08]">
@@ -104,6 +119,11 @@ export default function Navbar({ actions, profile, user }) {
                   href={link.href}
                   label={link.label}
                   pathname={pathname}
+                  onClick={
+                    link.href === "#questions"
+                      ? handleQuestionsClick
+                      : closeMenu
+                  }
                 />
               ))}
             </div>
@@ -130,8 +150,9 @@ export default function Navbar({ actions, profile, user }) {
               ) : (
                 <Link
                   href="/login"
-                  className="group relative inline-flex h-10 items-center justify-center overflow-hidden border border-lime-400 px-5 text-xs font-semibold uppercase tracking-[0.08em] text-lime-400 transition-all duration-300 hover:bg-lime-400 hover:text-black"
+                  className="group relative inline-flex h-10 items-center justify-center gap-3 overflow-hidden border border-lime-400 px-5 text-xs font-semibold uppercase tracking-[0.08em] text-lime-400 transition-all duration-300 hover:bg-lime-400 hover:text-black"
                 >
+                  <RiLoginCircleFill className="text-lg" />
                   Login
                 </Link>
               )}
@@ -174,7 +195,11 @@ export default function Navbar({ actions, profile, user }) {
                     href={link.href}
                     label={link.label}
                     pathname={pathname}
-                    onClick={closeMenu}
+                    onClick={
+                      link.href === "#questions"
+                        ? handleQuestionsClick
+                        : closeMenu
+                    }
                   />
                 ))}
               </div>
