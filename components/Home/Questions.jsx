@@ -43,7 +43,10 @@ export default function FAQ() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#080b08] px-6 py-24 lg:px-10 lg:py-22">
+    <section
+      id="questions"
+      className="relative overflow-hidden bg-[#080b08] px-6 py-24 lg:px-10 lg:py-22"
+    >
       {/* GRID */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.07]"

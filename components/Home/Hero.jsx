@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { FaArrowRightLong } from "react-icons/fa6";
 
 export default function Hero() {
   return (
@@ -59,7 +60,7 @@ export default function Hero() {
               </span>
 
               <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">
-                →
+                <FaArrowRightLong />
               </span>
             </Link>
           </div>
