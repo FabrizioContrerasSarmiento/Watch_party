@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { use } from "react";
 import WatchPartyRoom from "@/components/WatchPartyRoom";
 
@@ -9,15 +9,47 @@ export default function WatchPartyPage({ params }) {
   const [userId, setUserId] = useState("");
   const [joined, setJoined] = useState(false);
   const [inputName, setInputName] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const handleJoin = () => {
+  // Leer el nombre del usuario desde el atributo data del layout
+  useEffect(() => {
+    // Obtener el nombre del atributo data
+    const userNameElement = document.querySelector("[data-user-name]");
+    const storedName = userNameElement?.getAttribute("data-user-name");
+
+    if (storedName && storedName !== "null") {
+      setInputName(storedName);
+      setUserId(storedName);
+      //setJoined(true);
+    }
+
+    setLoading(false);
+  }, []);
+
+  /*const handleJoin = () => {
     if (inputName.trim()) {
       setUserId(inputName);
       setJoined(true);
     }
-  };
+  };*/
 
-  if (!joined) {
+  /*const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleJoin();
+    }
+  };*/
+
+  if (loading) {
+    return (
+      <div style={styles.joinContainer}>
+        <div style={styles.joinCard}>
+          <p>Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  /*if (!joined) {
     return (
       <div style={styles.joinContainer}>
         <div style={styles.joinCard}>
@@ -31,7 +63,7 @@ export default function WatchPartyPage({ params }) {
             placeholder="¿Cuál es tu nombre?"
             value={inputName}
             onChange={(e) => setInputName(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleJoin()}
+            onKeyPress={handleKeyPress}
             style={styles.joinInput}
             autoFocus
           />
@@ -42,7 +74,7 @@ export default function WatchPartyPage({ params }) {
         </div>
       </div>
     );
-  }
+  }*/
 
   return <WatchPartyRoom roomId={roomId} userId={userId} />;
 }

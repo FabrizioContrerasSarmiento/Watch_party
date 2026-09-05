@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import YouTube from "react-youtube";
+import YouTubePlayer from "./YouTubePlayer";
 import { io } from "socket.io-client";
 
 export default function WatchPartyRoom({ roomId, userId }) {
@@ -15,13 +15,14 @@ export default function WatchPartyRoom({ roomId, userId }) {
   const [inputVideoId, setInputVideoId] = useState("");
   const [inputTitle, setInputTitle] = useState("");
   const [playerReady, setPlayerReady] = useState(false);
-  const [debug, setDebug] = useState("");
 
-  const isSeeking = useRef(false);
   const isLocalChange = useRef(false);
   const timeUpdateInterval = useRef(null);
+  const isSeeking = useRef(false);
+  const syncCheckInterval = useRef(null);
+  const lastSyncTime = useRef(0);
+  const isPageVisible = useRef(true);
 
-  // Conectar a Socket.io
   useEffect(() => {
     socketRef.current = io("http://localhost:3001", {
       reconnection: true,
@@ -32,130 +33,96 @@ export default function WatchPartyRoom({ roomId, userId }) {
 
     socketRef.current.emit("join-room", roomId, userId);
 
-    // Recibir estado de la sala
     socketRef.current.on("room-state", (room) => {
       console.log("Estado de sala recibido:", room);
-      setDebug("Estado recibido");
+
       if (room.videoId) {
         setVideoId(room.videoId);
         setVideoTitle(room.title);
+        setIsPlaying(room.isPlaying);
+      } else {
+        setVideoId("dQw4w9WgXcQ");
+        setVideoTitle("Sin video");
+        setIsPlaying(false);
       }
-      setCurrentTime(room.currentTime);
+
       setUsers(room.users);
     });
 
-    // Sincronizar reproducción desde otros usuarios
-    socketRef.current.on("play-synced", (data) => {
-      console.log("Play sincronizado recibido:", data);
-      console.log("Player ref:", playerRef.current);
-      console.log("Player ready:", playerReady);
-      setDebug(`Play recibido - Player: ${playerRef.current ? "OK" : "NULL"}`);
+    socketRef.current.on("play-synced", () => {
+      console.log("Play sincronizado recibido");
 
-      if (playerRef.current && playerReady) {
+      if (playerRef.current) {
         try {
           isLocalChange.current = true;
-          console.log("Ejecutando play...");
+          playerRef.current.playVideo();
+          setIsPlaying(true);
 
-          // Obtener tiempo actual de forma segura
-          let currentPlayerTime = 0;
-          try {
-            currentPlayerTime = playerRef.current.getCurrentTime();
-          } catch (e) {
-            console.warn("No se pudo obtener tiempo actual:", e);
-            currentPlayerTime = 0;
-          }
-
-          // Sincronizar tiempo primero
-          if (Math.abs(currentPlayerTime - data.currentTime) > 1) {
-            console.log("Buscando a tiempo:", data.currentTime);
-            playerRef.current.seekTo(data.currentTime, true);
-          }
-
-          // Reproducir después de un delay
           setTimeout(() => {
-            if (playerRef.current) {
-              try {
-                console.log("Reproduciendo video...");
-                playerRef.current.playVideo();
-                setIsPlaying(true);
-              } catch (e) {
-                console.error("Error al reproducir:", e);
-              }
-            }
             isLocalChange.current = false;
           }, 300);
         } catch (error) {
           console.error("Error al reproducir:", error);
           isLocalChange.current = false;
         }
-      } else {
-        console.warn("No se puede reproducir - Player no está listo");
-        setDebug("Player no listo para play");
       }
     });
 
-    socketRef.current.on("pause-synced", (data) => {
-      console.log("Pause sincronizado recibido:", data);
-      console.log("Player ref:", playerRef.current);
-      console.log("Player ready:", playerReady);
-      setDebug(`Pause recibido - Player: ${playerRef.current ? "OK" : "NULL"}`);
+    socketRef.current.on("pause-synced", () => {
+      console.log("Pause sincronizado recibido");
 
-      if (playerRef.current && playerReady) {
+      if (playerRef.current) {
         try {
           isLocalChange.current = true;
-          console.log("Ejecutando pause...");
+          playerRef.current.pauseVideo();
+          setIsPlaying(false);
 
-          // Obtener tiempo actual de forma segura
-          let currentPlayerTime = 0;
-          try {
-            currentPlayerTime = playerRef.current.getCurrentTime();
-          } catch (e) {
-            console.warn("No se pudo obtener tiempo actual:", e);
-            currentPlayerTime = 0;
-          }
-
-          // Sincronizar tiempo primero
-          if (Math.abs(currentPlayerTime - data.currentTime) > 1) {
-            console.log("Buscando a tiempo:", data.currentTime);
-            playerRef.current.seekTo(data.currentTime, true);
-          }
-
-          // Pausar después de un delay
           setTimeout(() => {
-            if (playerRef.current) {
-              try {
-                console.log("Pausando video...");
-                playerRef.current.pauseVideo();
-                setIsPlaying(false);
-              } catch (e) {
-                console.error("Error al pausar:", e);
-              }
-            }
             isLocalChange.current = false;
           }, 300);
         } catch (error) {
           console.error("Error al pausar:", error);
           isLocalChange.current = false;
         }
-      } else {
-        console.warn("No se puede pausar - Player no está listo");
-        setDebug("Player no listo para pause");
       }
     });
 
     socketRef.current.on("seek-synced", (data) => {
       console.log("Seek sincronizado recibido:", data);
-      if (playerRef.current && playerReady && !isSeeking.current) {
+
+      if (playerRef.current && !isSeeking.current && !isLocalChange.current) {
         try {
           isLocalChange.current = true;
-          console.log("Buscando a:", data.currentTime);
           playerRef.current.seekTo(data.currentTime, true);
           setCurrentTime(data.currentTime);
+          lastSyncTime.current = Date.now();
+
           setTimeout(() => {
             isLocalChange.current = false;
-          }, 500);
+          }, 300);
         } catch (error) {
-          console.error("Error al buscar:", error);
+          console.error("Error al aplicar seek:", error);
+          isLocalChange.current = false;
+        }
+      }
+    });
+
+    socketRef.current.on("seek-rejected", (data) => {
+      console.log("Seek rechazado:", data.reason);
+
+      if (playerRef.current) {
+        try {
+          isLocalChange.current = true;
+          console.log("Corrigiendo tiempo a:", data.correctTime);
+          playerRef.current.seekTo(data.correctTime, true);
+          setCurrentTime(data.correctTime);
+          lastSyncTime.current = Date.now();
+
+          setTimeout(() => {
+            isLocalChange.current = false;
+          }, 300);
+        } catch (error) {
+          console.error("Error al corregir tiempo:", error);
           isLocalChange.current = false;
         }
       }
@@ -163,13 +130,13 @@ export default function WatchPartyRoom({ roomId, userId }) {
 
     socketRef.current.on("video-changed", (data) => {
       console.log("Video cambiado recibido:", data);
-      setDebug("Video cambiado");
       isLocalChange.current = true;
+      setIsPlaying(false);
+      setCurrentTime(0);
+
       setVideoId(data.videoId);
       setVideoTitle(data.title);
-      setCurrentTime(0);
-      setIsPlaying(false);
-      setPlayerReady(false);
+      lastSyncTime.current = Date.now();
 
       setTimeout(() => {
         isLocalChange.current = false;
@@ -184,118 +151,138 @@ export default function WatchPartyRoom({ roomId, userId }) {
       console.log(`${newUserId} se unió a la sala`);
     });
 
+    // Detectar cuando la página vuelve a estar visible
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log("Página oculta");
+        isPageVisible.current = false;
+      } else {
+        console.log("Página visible - resincronizando");
+        isPageVisible.current = true;
+        lastSyncTime.current = 0; // Forzar sincronización inmediata
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       socketRef.current?.emit("leave-room", roomId, userId);
       socketRef.current?.disconnect();
       if (timeUpdateInterval.current) {
         clearInterval(timeUpdateInterval.current);
       }
+      if (syncCheckInterval.current) {
+        clearInterval(syncCheckInterval.current);
+      }
     };
-  }, [roomId, userId, playerReady]);
+  }, [roomId, userId]);
 
   const handlePlayerReady = (event) => {
-    console.log("Player ready event recibido:", event);
+    console.log("Player ready");
     playerRef.current = event.target;
     setPlayerReady(true);
-    setDebug("Player listo");
-    console.log("Player asignado:", playerRef.current);
+    lastSyncTime.current = Date.now();
 
-    // Actualizar tiempo cada 500ms
     if (timeUpdateInterval.current) {
       clearInterval(timeUpdateInterval.current);
     }
     timeUpdateInterval.current = setInterval(() => {
-      if (playerRef.current && !isSeeking.current) {
+      if (playerRef.current) {
         try {
           const time = playerRef.current.getCurrentTime();
           setCurrentTime(time);
         } catch (e) {
-          // Silenciar errores de lectura de tiempo
+          // Silenciar
         }
       }
     }, 500);
+
+    // Sincronizar más agresivamente cuando la página está visible
+    if (syncCheckInterval.current) {
+      clearInterval(syncCheckInterval.current);
+    }
+    syncCheckInterval.current = setInterval(() => {
+      if (playerRef.current && !isSeeking.current && !isLocalChange.current) {
+        // Determinar intervalo de sincronización basado en visibilidad
+        const syncInterval = isPageVisible.current ? 5000 : 2000; // 5s si visible, 2s si oculta
+        const timeSinceLastSync = Date.now() - lastSyncTime.current;
+
+        if (timeSinceLastSync > syncInterval) {
+          socketRef.current.emit("get-room-time", roomId, (roomData) => {
+            if (roomData) {
+              const clientTime = playerRef.current.getCurrentTime();
+              const timeDiff = Math.abs(clientTime - roomData.currentTime);
+
+              console.log(
+                `Verificación de sync: cliente=${clientTime.toFixed(1)}, servidor=${roomData.currentTime.toFixed(1)}, diff=${timeDiff.toFixed(1)}, visible=${isPageVisible.current}`,
+              );
+
+              // Si hay diferencia > 1 segundo, sincronizar
+              if (timeDiff > 1) {
+                console.log(`Sincronizando tiempo`);
+                isLocalChange.current = true;
+                playerRef.current.seekTo(roomData.currentTime, true);
+                setCurrentTime(roomData.currentTime);
+                lastSyncTime.current = Date.now();
+
+                setTimeout(() => {
+                  isLocalChange.current = false;
+                }, 500);
+              } else {
+                // Aunque no haya diferencia grande, actualizar el último sync
+                lastSyncTime.current = Date.now();
+              }
+            }
+          });
+        }
+      }
+    }, 1000); // Verificar cada 1 segundo
   };
 
   const handleStateChange = (event) => {
     const state = event.data;
-    const stateNames = {
-      "-1": "UNSTARTED",
-      0: "ENDED",
-      1: "PLAYING",
-      2: "PAUSED",
-      3: "BUFFERING",
-      5: "CUED",
-    };
 
-    console.log("Estado del player cambió a:", stateNames[state]);
-
-    // Evitar loops infinitos
-    if (isLocalChange.current) {
-      console.log("Cambio local detectado, ignorando");
+    if (isLocalChange.current || isSeeking.current) {
       return;
     }
 
     if (state === 1) {
-      // Reproduciendo
-      console.log("Usuario presionó play localmente");
+      // PLAYING
+      console.log("Usuario presionó play");
       isLocalChange.current = true;
-
-      let time = 0;
-      try {
-        time = playerRef.current?.getCurrentTime() || 0;
-      } catch (e) {
-        console.warn("No se pudo obtener tiempo:", e);
-      }
-
-      socketRef.current.emit("play", roomId, time);
+      socketRef.current.emit("play", roomId);
       setIsPlaying(true);
-      setDebug("Play local enviado");
 
       setTimeout(() => {
         isLocalChange.current = false;
-      }, 500);
+      }, 300);
     } else if (state === 2) {
-      // Pausado
-      console.log("Usuario presionó pause localmente");
+      // PAUSED
+      console.log("Usuario presionó pause");
       isLocalChange.current = true;
-
-      let time = 0;
-      try {
-        time = playerRef.current?.getCurrentTime() || 0;
-      } catch (e) {
-        console.warn("No se pudo obtener tiempo:", e);
-      }
-
-      socketRef.current.emit("pause", roomId, time);
+      socketRef.current.emit("pause", roomId);
       setIsPlaying(false);
-      setDebug("Pause local enviado");
 
       setTimeout(() => {
         isLocalChange.current = false;
-      }, 500);
+      }, 300);
     }
   };
 
-  const handleSeek = () => {
-    if (playerRef.current && !isLocalChange.current) {
-      isSeeking.current = true;
+  const handleSeek = (time) => {
+    console.log("Usuario hizo seek a:", time);
+    isSeeking.current = true;
+    isLocalChange.current = true;
+    lastSyncTime.current = Date.now();
 
-      let time = 0;
-      try {
-        time = playerRef.current.getCurrentTime();
-      } catch (e) {
-        console.warn("No se pudo obtener tiempo:", e);
-      }
+    socketRef.current.emit("seek", roomId, time);
+    setCurrentTime(time);
 
-      console.log("Usuario hizo seek a:", time);
-      socketRef.current.emit("seek", roomId, time);
-      setCurrentTime(time);
-      setDebug(`Seek a ${Math.floor(time)}s`);
-
-      setTimeout(() => {
-        isSeeking.current = false;
-      }, 500);
-    }
+    setTimeout(() => {
+      isSeeking.current = false;
+      isLocalChange.current = false;
+    }, 500);
   };
 
   const playVideo = () => {
@@ -306,38 +293,26 @@ export default function WatchPartyRoom({ roomId, userId }) {
 
     console.log("Reproduciendo nuevo video:", inputVideoId);
     isLocalChange.current = true;
+
     socketRef.current.emit(
       "play-video",
       roomId,
       inputVideoId,
       inputTitle || "Video sin título",
     );
+
     setVideoId(inputVideoId);
     setVideoTitle(inputTitle || "Video sin título");
     setInputVideoId("");
     setInputTitle("");
     setCurrentTime(0);
-    setPlayerReady(false);
     setIsPlaying(false);
-    setDebug("Nuevo video cargando");
   };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       playVideo();
     }
-  };
-
-  const opts = {
-    height: "600",
-    width: "100%",
-    playerVars: {
-      autoplay: 0,
-      controls: 1,
-      modestbranding: 1,
-      rel: 0,
-      fs: 1,
-    },
   };
 
   return (
@@ -357,18 +332,11 @@ export default function WatchPartyRoom({ roomId, userId }) {
                 <p>Cargando video...</p>
               </div>
             )}
-            <YouTube
-              key={videoId}
+            <YouTubePlayer
               videoId={videoId}
-              opts={opts}
-              onStateChange={handleStateChange}
               onReady={handlePlayerReady}
+              onStateChange={handleStateChange}
               onSeek={handleSeek}
-              onError={(error) => {
-                console.error("Error de YouTube:", error);
-                setPlayerReady(false);
-                setDebug("Error en video");
-              }}
             />
           </div>
 
@@ -381,7 +349,6 @@ export default function WatchPartyRoom({ roomId, userId }) {
             <p style={styles.statusText}>
               {playerReady ? "✅ Listo" : "⏳ Cargando..."}
             </p>
-            <p style={styles.debugText}>Debug: {debug}</p>
           </div>
 
           <div style={styles.controlsSection}>
@@ -424,8 +391,8 @@ export default function WatchPartyRoom({ roomId, userId }) {
             <h3>💡 Consejos</h3>
             <ul style={styles.tipsList}>
               <li>Copia el ID del video de la URL de YouTube</li>
-              <li>La reproducción se sincroniza automáticamente</li>
-              <li>Todos ven el mismo video al mismo tiempo</li>
+              <li>Todos ven el mismo video</li>
+              <li>Play y pause se sincronizan automáticamente</li>
             </ul>
           </div>
         </div>
@@ -494,12 +461,6 @@ const styles = {
     fontSize: "12px",
     color: "#aaa",
     marginTop: "8px",
-  },
-  debugText: {
-    fontSize: "11px",
-    color: "#666",
-    marginTop: "5px",
-    fontFamily: "monospace",
   },
   controlsSection: {
     backgroundColor: "#1a1a1a",

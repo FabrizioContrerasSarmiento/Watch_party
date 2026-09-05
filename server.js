@@ -16,6 +16,36 @@ app.use(express.json());
 // Almacenar estado de cada sala
 const rooms = new Map();
 
+app.get("/api/rooms", (req, res) => {
+  const roomsList = Array.from(rooms.entries()).map(([roomId, room]) => ({
+    roomId,
+    title: room.title,
+    videoId: room.videoId,
+    users: room.users,
+    userCount: room.users.length,
+    isPlaying: room.isPlaying,
+  }));
+
+  res.json(roomsList);
+});
+
+app.get("/api/rooms/:roomId", (req, res) => {
+  const room = rooms.get(req.params.roomId);
+
+  if (!room) {
+    return res.status(404).json({ error: "Sala no encontrada" });
+  }
+
+  res.json({
+    roomId: req.params.roomId,
+    title: room.title,
+    videoId: room.videoId,
+    users: room.users,
+    userCount: room.users.length,
+    isPlaying: room.isPlaying,
+  });
+});
+
 io.on("connection", (socket) => {
   console.log(`Usuario conectado: ${socket.id}`);
 
@@ -27,9 +57,10 @@ io.on("connection", (socket) => {
       rooms.set(roomId, {
         videoId: null,
         isPlaying: false,
-        currentTime: 0,
         users: [],
         title: "Sin video",
+        currentTime: 0,
+        playStartTime: null, // Timestamp de cuándo se presionó play
         lastUpdateTime: Date.now(),
       });
     }
@@ -37,10 +68,7 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomId);
     room.users.push(userId);
 
-    // Enviar estado actual al nuevo usuario
     socket.emit("room-state", room);
-
-    // Notificar a otros usuarios
     socket.to(roomId).emit("user-joined", userId);
     socket.to(roomId).emit("users-updated", room.users);
   });
@@ -50,66 +78,114 @@ io.on("connection", (socket) => {
     if (room) {
       room.videoId = videoId;
       room.title = title || "Video sin título";
-      room.isPlaying = false; // No reproducir automáticamente
+      room.isPlaying = false;
       room.currentTime = 0;
+      room.playStartTime = null;
       room.lastUpdateTime = Date.now();
 
-      // Broadcast a TODOS incluyendo al que envió el evento
       io.to(roomId).emit("video-changed", {
         videoId,
         title: room.title,
-        currentTime: 0,
       });
-      console.log(`Video reproduciendo en sala ${roomId}: ${videoId}`);
+
+      io.emit("rooms-updated");
+      console.log(`Video en sala ${roomId}: ${videoId}`);
     }
   });
 
-  socket.on("play", (roomId, currentTime) => {
+  socket.on("play", (roomId) => {
     const room = rooms.get(roomId);
     if (room) {
       room.isPlaying = true;
-      room.currentTime = currentTime || 0;
+      // Guardar cuándo empezó la reproducción (ahora)
+      room.playStartTime = Date.now();
       room.lastUpdateTime = Date.now();
 
-      console.log(`Play en sala ${roomId} a tiempo ${currentTime}`);
-
-      // Broadcast a TODOS EXCEPTO al que envió el evento
-      socket.to(roomId).emit("play-synced", {
-        currentTime: currentTime,
-        timestamp: room.lastUpdateTime,
-      });
+      socket.to(roomId).emit("play-synced");
+      io.emit("rooms-updated");
+      console.log(`Play en sala ${roomId}, tiempo: ${room.currentTime}`);
     }
   });
 
-  socket.on("pause", (roomId, currentTime) => {
+  socket.on("pause", (roomId) => {
     const room = rooms.get(roomId);
     if (room) {
-      console.log(room);
+      // Actualizar currentTime antes de pausar
+      if (room.isPlaying && room.playStartTime) {
+        const elapsedMs = Date.now() - room.playStartTime;
+        room.currentTime += elapsedMs / 1000;
+      }
       room.isPlaying = false;
-      room.currentTime = currentTime || 0;
+      room.playStartTime = null;
       room.lastUpdateTime = Date.now();
 
-      console.log(`Pause en sala ${roomId} a tiempo ${currentTime}`);
-
-      // Broadcast a TODOS EXCEPTO al que envió el evento
-      socket.to(roomId).emit("pause-synced", {
-        currentTime: currentTime,
-      });
+      socket.to(roomId).emit("pause-synced");
+      io.emit("rooms-updated");
+      console.log(
+        `Pause en sala ${roomId}, tiempo: ${room.currentTime.toFixed(2)}`,
+      );
     }
   });
 
-  socket.on("seek", (roomId, time) => {
+  socket.on("seek", (roomId, clientTime) => {
     const room = rooms.get(roomId);
     if (room) {
-      room.currentTime = time;
-      room.lastUpdateTime = Date.now();
+      // Calcular el tiempo actual del servidor
+      let serverTime = room.currentTime;
+      if (room.isPlaying && room.playStartTime) {
+        const elapsedMs = Date.now() - room.playStartTime;
+        serverTime = room.currentTime + elapsedMs / 1000;
+      }
 
-      console.log(`Seek en sala ${roomId} a tiempo ${time}`);
+      // Validar que el seek sea razonable
+      const timeDiff = Math.abs(clientTime - serverTime);
 
-      // Broadcast a TODOS EXCEPTO al que envió el evento
-      socket.to(roomId).emit("seek-synced", {
-        currentTime: time,
-        timestamp: room.lastUpdateTime,
+      if (timeDiff <= 5) {
+        // Seek válido - actualizar currentTime y resetear playStartTime
+        room.currentTime = clientTime;
+        if (room.isPlaying) {
+          // Si está reproduciéndose, actualizar playStartTime a ahora
+          room.playStartTime = Date.now();
+        } else {
+          room.playStartTime = null;
+        }
+        room.lastUpdateTime = Date.now();
+
+        console.log(
+          `Seek válido en sala ${roomId}: ${clientTime.toFixed(2)}s (diff: ${timeDiff.toFixed(2)}s)`,
+        );
+
+        io.to(roomId).emit("seek-synced", {
+          currentTime: clientTime,
+        });
+      } else {
+        // Seek inválido - rechazar y enviar el tiempo correcto
+        console.log(
+          `Seek rechazado en sala ${roomId}: cliente=${clientTime.toFixed(2)}, servidor=${serverTime.toFixed(2)}, diff=${timeDiff.toFixed(2)}s`,
+        );
+
+        socket.emit("seek-rejected", {
+          correctTime: serverTime,
+          reason: `Diferencia de ${timeDiff.toFixed(1)}s es mayor a 3s permitidos`,
+        });
+      }
+    }
+  });
+
+  socket.on("get-room-time", (roomId, callback) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      // Calcular el tiempo actual
+      let currentTime = room.currentTime;
+      if (room.isPlaying && room.playStartTime) {
+        const elapsedMs = Date.now() - room.playStartTime;
+        currentTime = room.currentTime + elapsedMs / 1000;
+      }
+
+      callback({
+        currentTime: currentTime,
+        isPlaying: room.isPlaying,
+        lastUpdateTime: room.lastUpdateTime,
       });
     }
   });
@@ -120,7 +196,8 @@ io.on("connection", (socket) => {
       room.users = room.users.filter((u) => u !== userId);
       io.to(roomId).emit("users-updated", room.users);
 
-      // Eliminar sala si está vacía
+      io.emit("rooms-updated");
+
       if (room.users.length === 0) {
         rooms.delete(roomId);
         console.log(`Sala ${roomId} eliminada (vacía)`);
