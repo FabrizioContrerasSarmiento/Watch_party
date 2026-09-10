@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { logout } from "@/app/dashboard/actions";
 import { FaHouseChimney } from "react-icons/fa6";
 import { IoIosTv } from "react-icons/io";
@@ -31,16 +31,23 @@ export default function DashboardSidebar({ user, profile }) {
   const userType = profile?.user_type || "user";
   const isAdmin = userType === "admin";
 
-  function toggleTheme() {
+  useEffect(() => {
+    const isLight = window.localStorage.getItem("watch-party-theme") === "light";
     const html = document.documentElement;
 
-    if (html.classList.contains("dark")) {
-      html.classList.remove("dark");
-      setIsDark(false);
-    } else {
-      html.classList.add("dark");
-      setIsDark(true);
-    }
+    html.classList.toggle("dark", !isLight);
+    html.classList.toggle("light", isLight);
+    setIsDark(!isLight);
+  }, []);
+
+  function toggleTheme() {
+    const nextIsDark = !isDark;
+    const html = document.documentElement;
+
+    html.classList.toggle("dark", nextIsDark);
+    html.classList.toggle("light", !nextIsDark);
+    window.localStorage.setItem("watch-party-theme", nextIsDark ? "dark" : "light");
+    setIsDark(nextIsDark);
   }
 
   const links = [
@@ -71,7 +78,7 @@ export default function DashboardSidebar({ user, profile }) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-zinc-800 bg-[#0c110b] transition-all duration-300 ${
+      className={`theme-sidebar fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-zinc-800 bg-[#0c110b] transition-all duration-300 ${
         isOpen ? "w-64" : "w-20"
       }`}
     >

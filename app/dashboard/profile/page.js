@@ -134,51 +134,6 @@ export default async function ProfilePage() {
               <ProfileForm profile={profile} />
             </div>
           </div>
-
-          {/* ACCOUNT INFORMATION */}
-          <div className="mt-6 rounded-2xl border border-zinc-800 bg-[#0c110b] p-6 lg:p-8">
-            <div className="mb-6">
-              <p className="font-body text-xs font-bold uppercase tracking-[0.14em] text-lime-400">
-                Account
-              </p>
-
-              <h2 className="mt-2 font-body text-2xl font-bold text-white">
-                Account information
-              </h2>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-xl border border-zinc-800 bg-[#101810] p-4">
-                <p className="font-body text-xs font-bold uppercase tracking-[0.12em] text-zinc-600">
-                  Email
-                </p>
-
-                <p className="mt-2 break-all font-body text-sm font-semibold text-zinc-300">
-                  {profile.email || "Not available"}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-zinc-800 bg-[#101810] p-4">
-                <p className="font-body text-xs font-bold uppercase tracking-[0.12em] text-zinc-600">
-                  Last access
-                </p>
-
-                <p className="mt-2 font-body text-sm font-semibold text-zinc-300">
-                  {formatDate(profile.lastLoginAt)}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-zinc-800 bg-[#101810] p-4">
-                <p className="font-body text-xs font-bold uppercase tracking-[0.12em] text-zinc-600">
-                  Account status
-                </p>
-
-                <p className="mt-2 font-body text-sm font-semibold text-lime-400">
-                  Active
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
       </div>
     </main>

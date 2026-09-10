@@ -42,14 +42,24 @@ export default async function DashboardPage() {
                 alt="Watch Party"
                 fill
                 priority
-                className="object-cover"
+                className="theme-image-dark object-cover"
+              />
+              <Image
+                src="/items/party2.png"
+                alt=""
+                fill
+                priority
+                className="theme-image-light object-cover"
               />
 
-              {/* Degradado izquierdo */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#080b08]/80 via-[#080b08]/5 to-transparent" />
+              {/* Degradado izquierdo - DARK */}
+              <div className="theme-image-dark pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080b08]/80 via-[#080b08]/5 to-transparent" />
 
-              {/* Degradado inferior */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#080b08]/20 via-transparent to-transparent" />
+              {/* Degradado izquierdo - LIGHT */}
+              <div className="theme-image-light pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f5f8ed]/85 via-[#f5f8ed]/30 to-transparent" />
+
+              {/* Degradado inferior - DARK */}
+              <div className="theme-image-dark pointer-events-none absolute inset-0 bg-gradient-to-t from-[#080b08]/20 via-transparent to-transparent" />
 
               {/* Texto */}
               <div className="absolute inset-0 flex flex-col justify-center px-5 lg:px-8">
@@ -312,12 +322,20 @@ export default async function DashboardPage() {
                   alt=""
                   width={360}
                   height={360}
-                  className="w-[360px] opacity-20 drop-shadow-[0_0_40px_rgba(163,255,0,0.4)]"
+                  className="theme-image-dark w-[360px] opacity-20 drop-shadow-[0_0_40px_rgba(163,255,0,0.4)]"
+                />
+
+                <Image
+                  src="/items/film2.png"
+                  alt=""
+                  width={360}
+                  height={360}
+                  className="theme-image-light w-[360px] opacity-10 drop-shadow-[0_0_30px_rgba(163,255,0,0.25)]"
                 />
               </div>
 
-              {/* DEGRADADO SOBRE LA DECORACIÓN */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-2/3 bg-gradient-to-r from-[#0c110b] via-[#0c110b]/70 to-transparent" />
+              {/* DEGRADADO SOBRE LA DECORACIÓN - SOLO DARK */}
+              <div className="theme-image-dark pointer-events-none absolute inset-y-0 right-0 z-[1] w-2/3 bg-gradient-to-r from-[#0c110b] via-[#0c110b]/70 to-transparent" />
 
               {/* CONTENIDO */}
               <div className="relative z-10">

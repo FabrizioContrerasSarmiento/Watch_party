@@ -12,6 +12,10 @@
     color-scheme: dark;
   }
 
+  html.light {
+    color-scheme: light;
+  }
+
   body {
     min-height: 100%;
     overflow-x: hidden;
@@ -43,4 +47,122 @@
   .overflow-wrap-anywhere {
     overflow-wrap: anywhere;
   }
+}
+
+@layer utilities {
+  html.light body {
+    background: #f7faef;
+    color: #17210f;
+  }
+
+  html.light [class*="bg-[#080b08]"] {
+    background-color: #f7faef;
+  }
+
+  html.light [class*="bg-[#0c110b]"] {
+    background-color: #ffffff;
+  }
+
+  html.light [class*="bg-[#101810]"],
+  html.light [class*="bg-[#101a0b]"] {
+    background-color: #eef5e1;
+  }
+
+  html.light .bg-zinc-950,
+  html.light .bg-zinc-900,
+  html.light .bg-zinc-800 {
+    background-color: #eef5e1;
+  }
+
+  html.light .border-zinc-800,
+  html.light .border-zinc-700 {
+    border-color: #d5e2c1;
+  }
+
+  html.light .text-white,
+  html.light .text-zinc-100,
+  html.light .text-zinc-200 {
+    color: #17210f;
+  }
+
+  html.light .text-zinc-300,
+  html.light .text-zinc-400 {
+    color: #405136;
+  }
+
+  html.light .text-zinc-500,
+  html.light .text-zinc-600,
+  html.light .text-zinc-700 {
+    color: #657458;
+  }
+
+  html.light .placeholder\:text-zinc-700::placeholder,
+  html.light .placeholder\:text-zinc-600::placeholder {
+    color: #7c8a70;
+  }
+
+  html.light .hover\:bg-\[\#101810\]:hover {
+    background-color: #e1efd0;
+  }
+
+  html.light .theme-sidebar[class*="bg-[#0c110b]"],
+  html.light .theme-sidebar [class*="bg-[#0c110b]"] {
+    background-color: #0c110b !important;
+  }
+
+  html.light .theme-sidebar [class*="bg-[#101810]"],
+  html.light .theme-sidebar [class*="bg-[#101a0b]"] {
+    background-color: #101810 !important;
+  }
+
+  html.light .theme-sidebar,
+  html.light .theme-sidebar .border-zinc-800,
+  html.light .theme-sidebar .border-zinc-700 {
+    border-color: #27272a !important;
+  }
+
+  html.light .theme-sidebar .text-white,
+  html.light .theme-sidebar .text-zinc-100,
+  html.light .theme-sidebar .text-zinc-200 {
+    color: #ffffff !important;
+  }
+
+  html.light .theme-sidebar .text-zinc-300 {
+    color: #d4d4d8 !important;
+  }
+
+  html.light .theme-sidebar .text-zinc-400 {
+    color: #a1a1aa !important;
+  }
+
+  html.light .theme-sidebar .text-zinc-500 {
+    color: #71717a !important;
+  }
+
+  html.light .theme-sidebar .hover\:bg-\[\#101810\]:hover {
+    background-color: #101810 !important;
+  }
+}
+
+@keyframes reaction-float {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(0.6) rotate(-8deg); }
+  14% { opacity: 1; transform: translate(-50%, 0) scale(1.15) rotate(4deg); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -280px) scale(1) rotate(-5deg); }
+}
+
+.reaction-float {
+  animation: reaction-float 3.6s ease-out forwards;
+}
+
+.theme-image-light {
+  display: none;
+}
+
+html.light .theme-image-dark {
+  display: none;
+}
+
+html.light .theme-image-light {
+  display: block;
 }
