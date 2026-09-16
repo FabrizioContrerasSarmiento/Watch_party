@@ -21,6 +21,7 @@ function createRoom() {
     playStartTime: null,
     lastUpdateTime: Date.now(),
     users: [],
+    voiceUsers: [],
     hostSocketId: null,
     chatLocked: false,
     queue: [],
@@ -42,7 +43,14 @@ function roomState(room) {
   return {
     ...room,
     currentTime: getCurrentTime(room),
-    users: room.users.map(({ socketId, userId }) => ({ socketId, userId })),
+    users: room.users.map(({ socketId, userId }) => ({
+      socketId,
+      userId,
+    })),
+    voiceUsers: room.voiceUsers.map(({ socketId, userId }) => ({
+      socketId,
+      userId,
+    })),
   };
 }
 
@@ -67,7 +75,10 @@ function changeVideo(roomId, room, video) {
   room.currentTime = 0;
   room.playStartTime = null;
   room.lastUpdateTime = Date.now();
-  io.to(roomId).emit("video-changed", { videoId: room.videoId, title: room.title });
+  io.to(roomId).emit("video-changed", {
+    videoId: room.videoId,
+    title: room.title,
+  });
   broadcastRoom(roomId);
 }
 
@@ -113,14 +124,24 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send-reaction", (roomId, reaction) => {
-    if (!rooms.has(roomId) || !["😂", "❤️", "😱", "😡", "🔥", "👀"].includes(reaction)) return;
-    io.to(roomId).emit("reaction", { id: `${socket.id}-${Date.now()}`, reaction });
+    if (
+      !rooms.has(roomId) ||
+      !["😂", "❤️", "😱", "😡", "🔥", "👀"].includes(reaction)
+    )
+      return;
+    io.to(roomId).emit("reaction", {
+      id: `${socket.id}-${Date.now()}`,
+      reaction,
+    });
   });
 
   socket.on("add-to-queue", (roomId, video, callback) => {
     const room = rooms.get(roomId);
     if (!room || !video?.videoId) {
-      callback?.({ success: false, error: "This room is no longer available." });
+      callback?.({
+        success: false,
+        error: "This room is no longer available.",
+      });
       return;
     }
     room.queue.push({
@@ -192,7 +213,11 @@ io.on("connection", (socket) => {
 
   socket.on("get-room-time", (roomId, callback) => {
     const room = rooms.get(roomId);
-    if (room) callback?.({ currentTime: getCurrentTime(room), isPlaying: room.isPlaying });
+    if (room)
+      callback?.({
+        currentTime: getCurrentTime(room),
+        isPlaying: room.isPlaying,
+      });
   });
 
   socket.on("create-poll", (roomId, poll) => {
@@ -216,7 +241,13 @@ io.on("connection", (socket) => {
   socket.on("vote-poll", (roomId, optionIndex) => {
     const room = rooms.get(roomId);
     const poll = room?.activePoll;
-    if (!poll || poll.closed || poll.voters.includes(socket.id) || !poll.options[optionIndex]) return;
+    if (
+      !poll ||
+      poll.closed ||
+      poll.voters.includes(socket.id) ||
+      !poll.options[optionIndex]
+    )
+      return;
     poll.options[optionIndex].votes += 1;
     poll.voters.push(socket.id);
     broadcastRoom(roomId);
@@ -238,21 +269,148 @@ io.on("connection", (socket) => {
 
   socket.on("remove-participant", (roomId, participantSocketId) => {
     const room = requireHost(socket, roomId);
+
     if (!room || participantSocketId === socket.id) return;
+
     const participant = io.sockets.sockets.get(participantSocketId);
+
     participant?.emit("removed-from-room");
     participant?.leave(roomId);
-    room.users = room.users.filter((user) => user.socketId !== participantSocketId);
+
+    room.users = room.users.filter(
+      (user) => user.socketId !== participantSocketId,
+    );
+
+    // Sacarlo también del voice chat
+    const wasInVoice = room.voiceUsers.some(
+      (user) => user.socketId === participantSocketId,
+    );
+
+    room.voiceUsers = room.voiceUsers.filter(
+      (user) => user.socketId !== participantSocketId,
+    );
+
+    // Avisar a los demás usuarios de voz
+    if (wasInVoice) {
+      io.to(roomId).emit("voice-user-left", {
+        socketId: participantSocketId,
+      });
+    }
+
     broadcastRoom(roomId);
+  });
+
+  // =========================
+  // WEBRTC VOICE CHAT
+  // =========================
+
+  socket.on("voice-join", (roomId) => {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    const user = room.users.find(
+      (participant) => participant.socketId === socket.id,
+    );
+
+    if (!user) return;
+
+    // Evitar duplicados
+    if (
+      !room.voiceUsers.some((participant) => participant.socketId === socket.id)
+    ) {
+      room.voiceUsers.push({
+        socketId: socket.id,
+        userId: user.userId,
+      });
+    }
+
+    // Le pasamos al usuario nuevo todos los que ya estaban usando voz
+    const otherVoiceUsers = room.voiceUsers.filter(
+      (participant) => participant.socketId !== socket.id,
+    );
+
+    socket.emit("voice-participants", otherVoiceUsers);
+
+    // Avisamos a los demás que entró alguien al voice chat
+    socket.to(roomId).emit("voice-user-joined", {
+      socketId: socket.id,
+      userId: user.userId,
+    });
+
+    broadcastRoom(roomId);
+  });
+
+  socket.on("voice-leave", (roomId) => {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    const wasInVoice = room.voiceUsers.some(
+      (participant) => participant.socketId === socket.id,
+    );
+
+    if (!wasInVoice) return;
+
+    room.voiceUsers = room.voiceUsers.filter(
+      (participant) => participant.socketId !== socket.id,
+    );
+
+    socket.to(roomId).emit("voice-user-left", {
+      socketId: socket.id,
+    });
+
+    broadcastRoom(roomId);
+  });
+
+  socket.on("voice-offer", (targetSocketId, offer) => {
+    io.to(targetSocketId).emit("voice-offer", {
+      fromSocketId: socket.id,
+      offer,
+    });
+  });
+
+  socket.on("voice-answer", (targetSocketId, answer) => {
+    io.to(targetSocketId).emit("voice-answer", {
+      fromSocketId: socket.id,
+      answer,
+    });
+  });
+
+  socket.on("voice-ice-candidate", (targetSocketId, candidate) => {
+    io.to(targetSocketId).emit("voice-ice-candidate", {
+      fromSocketId: socket.id,
+      candidate,
+    });
   });
 
   function leaveAllRooms() {
     for (const [roomId, room] of rooms.entries()) {
       if (!room.users.some((user) => user.socketId === socket.id)) continue;
+
+      const wasInVoice = room.voiceUsers.some(
+        (participant) => participant.socketId === socket.id,
+      );
+
       room.users = room.users.filter((user) => user.socketId !== socket.id);
-      if (room.hostSocketId === socket.id) room.hostSocketId = room.users[0]?.socketId || null;
-      if (!room.users.length) rooms.delete(roomId);
-      else broadcastRoom(roomId);
+
+      room.voiceUsers = room.voiceUsers.filter(
+        (participant) => participant.socketId !== socket.id,
+      );
+
+      if (wasInVoice) {
+        socket.to(roomId).emit("voice-user-left", {
+          socketId: socket.id,
+        });
+      }
+
+      if (room.hostSocketId === socket.id) {
+        room.hostSocketId = room.users[0]?.socketId || null;
+      }
+
+      if (!room.users.length) {
+        rooms.delete(roomId);
+      } else {
+        broadcastRoom(roomId);
+      }
     }
   }
 
@@ -261,4 +419,6 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, "0.0.0.0", () => console.log(`Servidor escuchando en puerto ${PORT}`));
+server.listen(PORT, "0.0.0.0", () =>
+  console.log(`Servidor escuchando en puerto ${PORT}`),
+);
