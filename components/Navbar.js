@@ -150,9 +150,9 @@ export default function Navbar({ actions, profile, user }) {
               ) : (
                 <Link
                   href="/login"
-                  className="group relative inline-flex h-10 items-center justify-center gap-3 overflow-hidden border border-lime-400 px-5 text-xs font-semibold uppercase tracking-[0.08em] text-lime-400 transition-all duration-300 hover:bg-lime-400 hover:text-black"
+                  className="group relative inline-flex h-9 items-center justify-center gap-2 overflow-hidden border border-lime-400 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-lime-400 transition-all duration-300 hover:bg-lime-400 hover:text-black"
                 >
-                  <RiLoginCircleFill className="text-lg" />
+                  <RiLoginCircleFill className="text-base" />
                   Login
                 </Link>
               )}

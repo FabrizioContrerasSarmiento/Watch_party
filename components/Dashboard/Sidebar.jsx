@@ -32,12 +32,15 @@ export default function DashboardSidebar({ user, profile }) {
   const isAdmin = userType === "admin";
 
   useEffect(() => {
-    const isLight = window.localStorage.getItem("watch-party-theme") === "light";
+    const isLight =
+      window.localStorage.getItem("watch-party-theme") === "light";
     const html = document.documentElement;
 
     html.classList.toggle("dark", !isLight);
     html.classList.toggle("light", isLight);
-    setIsDark(!isLight);
+    setTimeout(() => {
+      setIsDark(!isLight);
+    }, 0);
   }, []);
 
   function toggleTheme() {
@@ -46,7 +49,10 @@ export default function DashboardSidebar({ user, profile }) {
 
     html.classList.toggle("dark", nextIsDark);
     html.classList.toggle("light", !nextIsDark);
-    window.localStorage.setItem("watch-party-theme", nextIsDark ? "dark" : "light");
+    window.localStorage.setItem(
+      "watch-party-theme",
+      nextIsDark ? "dark" : "light",
+    );
     setIsDark(nextIsDark);
   }
 

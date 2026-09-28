@@ -7,6 +7,7 @@ import WatchPartyRoom from "@/components/WatchPartyRoom";
 export default function WatchPartyPage({ params }) {
   const { roomId } = use(params);
   const [userId, setUserId] = useState("");
+  const [userUid, setUserUid] = useState("");
   const [joined, setJoined] = useState(false);
   const [inputName, setInputName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -16,14 +17,18 @@ export default function WatchPartyPage({ params }) {
     // Obtener el nombre del atributo data
     const userNameElement = document.querySelector("[data-user-name]");
     const storedName = userNameElement?.getAttribute("data-user-name");
+    const storedUid = userNameElement?.getAttribute("data-user-id");
 
-    if (storedName && storedName !== "null") {
-      setInputName(storedName);
-      setUserId(storedName);
-      //setJoined(true);
-    }
-
-    setLoading(false);
+    setTimeout(() => {
+      if (storedUid) {
+        setUserUid(storedUid);
+      }
+      if (storedName && storedName !== "null") {
+        setInputName(storedName);
+        setUserId(storedName);
+      }
+      setLoading(false);
+    }, 0);
   }, []);
 
   /*const handleJoin = () => {
@@ -76,7 +81,7 @@ export default function WatchPartyPage({ params }) {
     );
   }*/
 
-  return <WatchPartyRoom roomId={roomId} userId={userId} />;
+  return <WatchPartyRoom roomId={roomId} userId={userId} userUid={userUid} />;
 }
 
 const styles = {

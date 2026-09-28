@@ -46,7 +46,7 @@ export default function Hero() {
 
             <p className="font-body font-[cursive] font-semibold text-base leading-7 text-zinc-500">
               Real-time chat, shared reactions, and a watching experience that
-              feels like you're in the same room.
+              feels like you&apos;re in the same room.
             </p>
           </div>
 

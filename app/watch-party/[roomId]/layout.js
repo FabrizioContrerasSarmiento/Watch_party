@@ -24,8 +24,10 @@ export default async function WatchPartyLayout({ children, params }) {
 
   return (
     <div>
-      {/* Pasar el nombre del usuario como atributo data */}
-      <div data-user-name={displayName}>{children}</div>
+      {/* Pasar el nombre y el uid del usuario como atributos data */}
+      <div data-user-name={displayName} data-user-id={user?.uid || ""}>
+        {children}
+      </div>
     </div>
   );
 }

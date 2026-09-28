@@ -10,6 +10,8 @@ export default function Home() {
   const [generatedRoom, setGeneratedRoom] = useState("");
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState("");
   const socketRef = useState(null)[1];
 
   const loadRooms = async () => {
@@ -27,7 +29,9 @@ export default function Home() {
   };
   // Cargar salas al montar
   useEffect(() => {
-    loadRooms();
+    const timer = setTimeout(() => {
+      loadRooms();
+    }, 0);
 
     // Conectar a Socket.io para actualizaciones en tiempo real
     const socket = io("http://localhost:3001");
@@ -38,6 +42,7 @@ export default function Home() {
     });
 
     return () => {
+      clearTimeout(timer);
       socket.disconnect();
     };
   }, []);
@@ -48,9 +53,27 @@ export default function Home() {
     setRoomId(newRoom);
   };
 
-  const joinRoom = () => {
-    if (roomId.trim()) {
-      router.push(`/watch-party/${roomId}`);
+  const joinRoom = async () => {
+    const clean = roomId.trim();
+    if (!clean) return;
+    setJoinLoading(true);
+    setJoinError("");
+    try {
+      const res = await fetch(
+        `/api/rooms/verify?code=${encodeURIComponent(clean)}`,
+      );
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setJoinError(
+          data.error || "La sala no existe o no se encuentra activa.",
+        );
+        setJoinLoading(false);
+        return;
+      }
+      router.push(`/watch-party/${data.roomId}`);
+    } catch {
+      setJoinError("Error de conexión al verificar la sala.");
+      setJoinLoading(false);
     }
   };
 
@@ -105,14 +128,33 @@ export default function Home() {
               <h3>Unirse a una Sala Existente</h3>
               <input
                 type="text"
-                placeholder="Ingresa el ID de la sala"
+                placeholder="Ingresa el ID de la sala o URL"
                 value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
+                disabled={joinLoading}
+                onChange={(e) => {
+                  setRoomId(e.target.value);
+                  setJoinError("");
+                }}
                 onKeyPress={handleKeyPress}
                 style={styles.input}
               />
-              <button onClick={joinRoom} style={styles.button}>
-                🚪 Unirse a la Sala
+              {joinError && (
+                <p
+                  style={{
+                    color: "#ff4d4d",
+                    fontSize: "13px",
+                    margin: "5px 0 10px 0",
+                  }}
+                >
+                  {joinError}
+                </p>
+              )}
+              <button
+                onClick={joinRoom}
+                disabled={joinLoading}
+                style={{ ...styles.button, opacity: joinLoading ? 0.7 : 1 }}
+              >
+                {joinLoading ? "Verificando..." : "🚪 Unirse a la Sala"}
               </button>
             </div>
           </div>

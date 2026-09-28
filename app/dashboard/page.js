@@ -266,7 +266,7 @@ export default async function DashboardPage() {
                       </span>
 
                       <span className="font-mono text-[9px] uppercase tracking-widest text-lime-400/30">
-                        // PARTY_PROTOCOL
+                        {"// PARTY_PROTOCOL"}
                       </span>
                     </div>
 
@@ -362,7 +362,7 @@ export default async function DashboardPage() {
                   {parties.length === 0 ? (
                     <div className="rounded-xl border border-zinc-800 bg-[#101810]/90 p-6">
                       <p className="font-body text-sm font-medium text-zinc-500">
-                        You haven't created any Watch Parties yet.
+                        You haven&apos;t created any Watch Parties yet.
                       </p>
 
                       <Link
