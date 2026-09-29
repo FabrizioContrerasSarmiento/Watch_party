@@ -24,7 +24,7 @@ export default async function PartiesPage() {
     <div className="min-h-screen bg-[#080b08] text-white">
       <DashboardSidebar user={user} profile={profile} />
 
-      <main className="pl-20 lg:pl-64">
+      <main className="pl-0 lg:pl-64">
         <div className="mx-auto w-full max-w-7xl px-6 pb-10 pt-8 lg:px-10 lg:pt-10">
           {/* HEADER */}
           <header className="flex flex-col gap-6 border-b border-zinc-800 pb-8 sm:flex-row sm:items-end sm:justify-between">

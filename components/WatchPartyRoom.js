@@ -2013,7 +2013,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
 
   // Shared Bottom Bar Component
   const renderBottomControls = () => (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
       {/* LEFT: Multimedia & Voice Controls */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Voice Control */}
@@ -2022,7 +2022,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
             type="button"
             onClick={joinVoice}
             disabled={!socketConnected}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-lime-400/50 bg-[#0c110b] px-3 font-body text-xs font-semibold text-lime-400 transition hover:border-lime-400 hover:bg-lime-400/10 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border border-lime-400/50 bg-[#0c110b] px-3 font-body text-xs font-semibold text-lime-400 transition hover:border-lime-400 hover:bg-lime-400/10 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <IoMicOutline className="text-base text-lime-400" />
             <span>Conectar Voz</span>
@@ -2032,7 +2032,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
             <button
               type="button"
               onClick={toggleVoiceMute}
-              className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 font-body text-xs font-semibold transition ${
+              className={`inline-flex h-9 sm:h-8 items-center gap-1.5 rounded-md px-2.5 font-body text-xs font-semibold transition ${
                 voiceMuted
                   ? "text-red-400 hover:bg-red-500/10"
                   : "text-lime-400 hover:bg-lime-400/20"
@@ -2063,7 +2063,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
             <button
               type="button"
               onClick={leaveVoice}
-              className="inline-flex h-8 items-center rounded-md px-2 font-body text-xs font-semibold text-zinc-400 transition hover:text-red-400"
+              className="inline-flex h-9 sm:h-8 items-center rounded-md px-2 font-body text-xs font-semibold text-zinc-400 transition hover:text-red-400"
               title="Desconectar voz"
             >
               <IoExitOutline className="text-sm" />
@@ -2075,7 +2075,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
         <button
           type="button"
           onClick={toggleCamera}
-          className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition-all duration-200 active:scale-95 ${
+          className={`inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition-all duration-200 active:scale-95 ${
             cameraEnabled
               ? "border-lime-400 bg-lime-400/10 text-lime-400 shadow-[0_0_15px_rgba(163,255,0,0.15)]"
               : "border-zinc-800 bg-[#0c110b] text-zinc-300 hover:border-lime-400 hover:text-lime-400"
@@ -2092,7 +2092,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
           type="button"
           onClick={startScreenSharing}
           disabled={isConnectingScreen}
-          className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition-all duration-200 active:scale-95 ${
+          className={`inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition-all duration-200 active:scale-95 ${
             screenSharing
               ? "border-lime-400 bg-lime-400/10 text-lime-400 shadow-[0_0_15px_rgba(163,255,0,0.15)]"
               : "border-zinc-800 bg-[#0c110b] text-zinc-300 hover:border-lime-400 hover:text-lime-400"
@@ -2118,7 +2118,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
           <button
             type="button"
             onClick={() => setShowReactions((value) => !value)}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-800 bg-[#0c110b] px-3 font-body text-xs font-semibold text-zinc-300 transition hover:border-lime-400 hover:text-lime-400"
+            className="inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border border-zinc-800 bg-[#0c110b] px-3 font-body text-xs font-semibold text-zinc-300 transition hover:border-lime-400 hover:text-lime-400"
           >
             <IoHappyOutline className="text-base text-lime-400" />
             <span>Reaccionar</span>
@@ -2134,7 +2134,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                     sendReaction(reaction);
                     setShowReactions(false);
                   }}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:scale-110 hover:bg-lime-400/10"
+                  className="flex h-10 w-10 sm:h-9 sm:w-9 items-center justify-center rounded-lg text-lg transition hover:scale-110 hover:bg-lime-400/10"
                   aria-label={`Send ${reaction} reaction`}
                 >
                   {reaction}
@@ -2149,7 +2149,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
           <button
             type="button"
             onClick={() => setShowHostControls((prev) => !prev)}
-            className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition ${
+            className={`inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition ${
               showHostControls
                 ? "border-lime-400 bg-lime-400/10 text-lime-400"
                 : "border-zinc-800 bg-[#0c110b] text-zinc-300 hover:border-lime-400 hover:text-lime-400"
@@ -2164,7 +2164,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
         <button
           type="button"
           onClick={() => setShowChat((prev) => !prev)}
-          className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition ${
+          className={`inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition ${
             showChat
               ? "border-lime-400 bg-lime-400/10 text-lime-400"
               : "border-zinc-800 bg-[#0c110b] text-zinc-300 hover:border-lime-400 hover:text-lime-400"
@@ -2178,7 +2178,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
         <button
           type="button"
           onClick={toggleCinemaMode}
-          className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition-all duration-200 active:scale-95 ${
+          className={`inline-flex h-10 sm:h-9 items-center gap-2 rounded-lg border px-3 font-body text-xs font-semibold transition-all duration-200 active:scale-95 ${
             isCinemaMode
               ? "border-lime-400 bg-lime-400/10 text-lime-400 shadow-[0_0_15px_rgba(163,255,0,0.15)]"
               : "border-zinc-800 bg-[#0c110b] text-zinc-300 hover:border-lime-400 hover:text-lime-400"
@@ -2216,37 +2216,37 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
         {/* NORMAL HEADER (hidden in Cinema mode) */}
         {!isCinemaMode && (
           <header className="mb-6 flex flex-col gap-4 border-b border-zinc-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 min-w-0">
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-[#0c110b] text-zinc-400 transition-all duration-200 hover:border-lime-400/40 hover:bg-lime-400/10 hover:text-lime-400"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-[#0c110b] text-zinc-400 transition-all duration-200 hover:border-lime-400/40 hover:bg-lime-400/10 hover:text-lime-400"
                 aria-label="Go back"
               >
                 <FiArrowLeft className="text-lg" />
               </button>
 
-              <div>
+              <div className="min-w-0 flex-1 sm:flex-initial">
                 <p className="font-body text-[10px] font-bold uppercase tracking-[0.25em] text-lime-400">
                   Watch Party
                 </p>
-                <h1 className="mt-1 font-body text-xl font-bold uppercase text-white">
+                <h1 className="mt-1 font-body text-lg sm:text-xl font-bold uppercase text-white truncate max-w-[200px] sm:max-w-md">
                   {room?.title || "Watch Party"}
                 </h1>
               </div>
 
-              <div className="rounded-lg border border-lime-400/20 bg-lime-400/5 px-3 py-2">
+              <div className="shrink-0 rounded-lg border border-lime-400/20 bg-lime-400/5 px-3 py-2">
                 <p className="font-body text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                   Host
                 </p>
-                <p className="mt-0.5 font-body text-xs font-bold text-lime-400">
+                <p className="mt-0.5 max-w-[130px] truncate font-body text-xs font-bold text-lime-400">
                   {room?.users.find(
                     (user) => user.socketId === room?.hostSocketId,
                   )?.userId || "Connecting..."}
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="rounded-lg border border-zinc-800 bg-[#0c110b] px-3 py-2">
                 <p className="font-body text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-600">
                   Room
@@ -2268,14 +2268,14 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
 
         {/* CINEMA MODE TOP BAR */}
         {isCinemaMode && (
-          <div className="flex h-11 shrink-0 items-center justify-between border-b border-zinc-900 bg-[#080b08]/90 px-4 text-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(163,255,0,0.8)]" />
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-lime-400">
+          <div className="flex h-11 shrink-0 items-center justify-between border-b border-zinc-900 bg-[#080b08]/90 px-3 sm:px-4 text-xs">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(163,255,0,0.8)]" />
+              <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-wider text-lime-400">
                 Modo Cine
               </span>
               <span className="text-zinc-600">|</span>
-              <span className="truncate max-w-xs sm:max-w-md font-body text-xs text-zinc-300">
+              <span className="truncate max-w-[130px] sm:max-w-md font-body text-xs text-zinc-300">
                 {room?.title || "Watch Party"}
               </span>
             </div>
@@ -2283,7 +2283,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
             <button
               type="button"
               onClick={() => setIsCinemaMode(false)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-[#0c110b] px-3 py-1 font-body text-xs font-bold uppercase text-zinc-300 transition hover:border-lime-400 hover:text-lime-400"
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-[#0c110b] px-2.5 sm:px-3 py-1 font-body text-xs font-bold uppercase text-zinc-300 transition hover:border-lime-400 hover:text-lime-400"
             >
               <IoContractOutline className="text-sm text-lime-400" />
               <span>Salir (Esc)</span>
@@ -2312,7 +2312,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
               className={
                 isCinemaMode
                   ? "relative flex-1 min-h-0 w-full bg-black flex items-center justify-center overflow-hidden"
-                  : "relative aspect-video w-full overflow-hidden rounded-2xl border border-zinc-800 bg-black shadow-[0_0_40px_rgba(0,0,0,0.35)]"
+                  : "relative min-h-[280px] sm:min-h-0 aspect-video w-full overflow-hidden rounded-2xl border border-zinc-800 bg-black shadow-[0_0_40px_rgba(0,0,0,0.35)]"
               }
             >
               {currentContentType === "youtube" &&
@@ -2377,20 +2377,20 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative flex flex-col items-center justify-center p-6 text-center select-none">
+                    <div className="relative flex flex-col items-center justify-center p-4 sm:p-6 text-center select-none overflow-y-auto max-h-full">
                       <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-lime-400/[0.04] blur-3xl" />
                       <div className="relative flex flex-col items-center">
-                        <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-lime-400/20 bg-lime-400/5 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-lime-400">
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-lime-400/20 bg-lime-400/5 px-3 py-1 font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-lime-400">
                           <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(163,255,0,0.8)] animate-pulse" />
                           <span>PANTALLA EN VIVO</span>
                         </div>
-                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-lime-400/30 bg-[#0c110b] shadow-[0_0_30px_rgba(163,255,0,0.15)]">
-                          <IoDesktopOutline className="text-4xl text-lime-400 animate-pulse" />
+                        <div className="mb-3 sm:mb-4 flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-lime-400/30 bg-[#0c110b] shadow-[0_0_30px_rgba(163,255,0,0.15)]">
+                          <IoDesktopOutline className="text-2xl sm:text-4xl text-lime-400 animate-pulse" />
                         </div>
-                        <h2 className="font-body text-xl font-bold uppercase tracking-wider text-white sm:text-2xl">
+                        <h2 className="font-body text-base font-bold uppercase tracking-wider text-white sm:text-2xl max-w-[280px] sm:max-w-md truncate">
                           {sharerName} está compartiendo pantalla
                         </h2>
-                        <p className="mt-2 max-w-sm font-body text-xs font-medium text-zinc-400">
+                        <p className="mt-1 sm:mt-2 max-w-sm font-body text-xs font-medium text-zinc-400">
                           Conectando transmisión...
                         </p>
                       </div>
@@ -2424,34 +2424,34 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
 
               {/* EMPTY STATE: NO CONTENT YET (Choose YouTube or Screen Share) */}
               {!isScreenActive && !room?.videoId && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070a07] p-6 text-center select-none">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070a07] p-4 sm:p-6 text-center select-none overflow-y-auto">
                   {/* Subtle ambient glow */}
                   <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-lime-400/[0.04] blur-3xl" />
 
                   {selectedContentSource !== "youtube" ? (
-                    <div className="relative flex flex-col items-center">
+                    <div className="relative flex flex-col items-center max-w-full">
                       {/* Badge */}
-                      <div className="mb-3.5 inline-flex items-center gap-2 rounded-full border border-lime-400/20 bg-lime-400/5 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-lime-400">
+                      <div className="mb-2 sm:mb-3.5 inline-flex items-center gap-2 rounded-full border border-lime-400/20 bg-lime-400/5 px-3 py-1 font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-lime-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(163,255,0,0.8)]" />
                         <span>Watch Room Ready</span>
                       </div>
 
                       {/* Title */}
-                      <h2 className="font-body text-xl font-bold uppercase tracking-wider text-white sm:text-2xl">
+                      <h2 className="font-body text-lg font-bold uppercase tracking-wider text-white sm:text-2xl">
                         What do you want to watch?
                       </h2>
 
-                      <p className="mt-2 max-w-sm font-body text-xs font-medium text-zinc-400">
+                      <p className="mt-1.5 max-w-sm font-body text-xs font-medium text-zinc-400 px-2">
                         Elegí qué tipo de contenido querés compartir con tus
                         amigos.
                       </p>
 
                       {/* Actions */}
-                      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                      <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 w-full sm:w-auto px-4 sm:px-0">
                         <button
                           type="button"
                           onClick={() => setSelectedContentSource("youtube")}
-                          className="group inline-flex h-11 items-center gap-2.5 rounded-lg bg-lime-400 px-5 font-body text-xs font-bold uppercase tracking-[0.08em] text-[#080b08] transition-all hover:bg-lime-300 hover:shadow-[0_0_25px_rgba(163,255,0,0.22)] active:scale-95"
+                          className="group inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2.5 rounded-lg bg-lime-400 px-5 font-body text-xs font-bold uppercase tracking-[0.08em] text-[#080b08] transition-all hover:bg-lime-300 hover:shadow-[0_0_25px_rgba(163,255,0,0.22)] active:scale-95"
                         >
                           <IoPlay className="text-base" />
                           <span>YouTube</span>
@@ -2461,7 +2461,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                           type="button"
                           onClick={startScreenSharing}
                           disabled={isConnectingScreen}
-                          className="group inline-flex h-11 items-center gap-2.5 rounded-lg border border-zinc-800 bg-[#0c110b] px-5 font-body text-xs font-bold uppercase tracking-[0.08em] text-zinc-300 transition-all hover:border-lime-400 hover:text-lime-400 active:scale-95 disabled:opacity-50"
+                          className="group inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2.5 rounded-lg border border-zinc-800 bg-[#0c110b] px-5 font-body text-xs font-bold uppercase tracking-[0.08em] text-zinc-300 transition-all hover:border-lime-400 hover:text-lime-400 active:scale-95 disabled:opacity-50"
                         >
                           <IoDesktopOutline className="text-base text-lime-400" />
                           <span>Compartir pantalla</span>
@@ -2469,8 +2469,8 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative w-full max-w-md">
-                      <div className="mb-4 flex items-center justify-between">
+                    <div className="relative w-full max-w-md px-2 sm:px-0">
+                      <div className="mb-3 sm:mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <IoLogoYoutube className="text-lg text-lime-400" />
                           <span className="font-body text-xs font-bold uppercase tracking-wider text-white">
@@ -2480,7 +2480,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                         <button
                           type="button"
                           onClick={() => setSelectedContentSource(null)}
-                          className="font-body text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition"
+                          className="font-body text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition p-1"
                         >
                           ← Volver
                         </button>
@@ -2542,7 +2542,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                       top: cameraPos.y !== null ? `${cameraPos.y}px` : "16px",
                       right: cameraPos.x === null ? "16px" : undefined,
                     }}
-                    className="z-30 select-none shadow-2xl transition-shadow duration-200"
+                    className="z-30 select-none shadow-2xl transition-shadow duration-200 max-w-[calc(100vw-24px)]"
                   >
                     <div
                       onPointerDown={handleCameraPointerDown}
@@ -2568,7 +2568,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                             e.stopPropagation();
                             setCameraCollapsed((prev) => !prev);
                           }}
-                          className="text-xs text-zinc-400 hover:text-white"
+                          className="p-1 text-xs text-zinc-400 hover:text-white"
                           title={cameraCollapsed ? "Expandir" : "Minimizar"}
                         >
                           {cameraCollapsed ? (
@@ -2584,8 +2584,8 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                         <div
                           className={
                             totalCameras === 1
-                              ? "relative aspect-video w-44 sm:w-56 md:w-64 bg-black overflow-hidden"
-                              : "grid grid-cols-2 gap-1.5 p-1.5 max-w-[420px] sm:max-w-[480px] bg-black/40"
+                              ? "relative aspect-video w-36 sm:w-56 md:w-64 bg-black overflow-hidden"
+                              : "grid grid-cols-2 gap-1.5 p-1.5 max-w-[calc(100vw-32px)] sm:max-w-[480px] bg-black/40"
                           }
                         >
                           {/* Local Camera (if active) */}
@@ -2593,7 +2593,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                             <div
                               className={`relative aspect-video bg-black overflow-hidden ${
                                 totalCameras > 1
-                                  ? "w-40 sm:w-48 rounded-lg"
+                                  ? "w-32 sm:w-48 rounded-lg"
                                   : "w-full h-full"
                               }`}
                             >
@@ -2635,7 +2635,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
 
               {/* CINEMA MODE: FLOATING COMPACT CHAT OVERLAY */}
               {isCinemaMode && showChat && (
-                <div className="absolute right-4 bottom-4 z-30 w-72 sm:w-80 h-[360px] max-h-[calc(100vh-140px)] flex flex-col rounded-xl border border-zinc-800 bg-[#0c110b]/95 backdrop-blur-md shadow-2xl overflow-hidden">
+                <div className="absolute right-2 sm:right-4 bottom-14 sm:bottom-4 z-30 w-[calc(100vw-16px)] sm:w-80 max-w-sm h-[340px] sm:h-[360px] max-h-[calc(100vh-120px)] flex flex-col rounded-xl border border-zinc-800 bg-[#0c110b]/95 backdrop-blur-md shadow-2xl overflow-hidden">
                   <div className="flex items-center justify-between border-b border-zinc-800 px-3.5 py-2.5">
                     <div className="flex items-center gap-2">
                       <span className="h-1.5 w-1.5 rounded-full bg-lime-400 shadow-[0_0_6px_rgba(163,255,0,0.8)]" />
@@ -2700,13 +2700,13 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                             ? "Chat bloqueado"
                             : "Escribí un mensaje..."
                         }
-                        className="h-8 min-w-0 flex-1 rounded-md border border-zinc-800 bg-[#080b08] px-2.5 font-body text-xs text-white outline-none focus:border-lime-400/60"
+                        className="h-10 sm:h-8 min-w-0 flex-1 rounded-md border border-zinc-800 bg-[#080b08] px-2.5 font-body text-xs text-white outline-none focus:border-lime-400/60"
                       />
                       <button
                         type="button"
                         disabled={room?.chatLocked || !chatMessage.trim()}
                         onClick={sendMessage}
-                        className="h-8 rounded-md bg-lime-400 px-3 font-body text-xs font-bold text-[#080b08] disabled:opacity-50"
+                        className="h-10 sm:h-8 rounded-md bg-lime-400 px-3 font-body text-xs font-bold text-[#080b08] disabled:opacity-50"
                       >
                         Enviar
                       </button>
@@ -2729,7 +2729,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
 
             {/* CINEMA MODE: HOST CONTROLS POPOVER (if toggled) */}
             {isCinemaMode && showHostControls && isHost && (
-              <div className="absolute left-4 bottom-16 z-40 w-80 rounded-xl border border-zinc-800 bg-[#0c110b] p-4 shadow-2xl">
+              <div className="absolute left-2 sm:left-4 bottom-14 sm:bottom-16 z-40 w-[calc(100vw-16px)] sm:w-80 max-w-sm rounded-xl border border-zinc-800 bg-[#0c110b] p-4 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
                   <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-lime-400">
                     Host Controls
@@ -2748,7 +2748,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                     onClick={() =>
                       socketRef.current?.emit("toggle-chat-lock", roomId)
                     }
-                    className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-300 hover:border-zinc-500"
+                    className="flex-1 inline-flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-300 hover:border-zinc-500"
                   >
                     {room?.chatLocked ? (
                       <IoLockOpenOutline />
@@ -2760,7 +2760,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                   <button
                     type="button"
                     onClick={() => setShowPollForm((v) => !v)}
-                    className="flex-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-300 hover:border-zinc-500"
+                    className="flex-1 inline-flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-300 hover:border-zinc-500"
                   >
                     <IoStatsChartOutline />
                     <span>Encuesta</span>
@@ -2768,7 +2768,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                   <button
                     type="button"
                     onClick={() => setShowDeleteModal(true)}
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-3 text-xs font-semibold text-red-400 hover:bg-red-500 hover:text-white transition"
+                    className="inline-flex h-10 sm:h-9 items-center justify-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-3 text-xs font-semibold text-red-400 hover:bg-red-500 hover:text-white transition"
                     title="Eliminar esta Watch Party"
                   >
                     <IoTrashOutline />
@@ -2780,17 +2780,17 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                     value={videoInput}
                     onChange={(e) => setVideoInput(e.target.value)}
                     placeholder="URL de YouTube"
-                    className="h-8 w-full rounded-md border border-zinc-800 bg-[#080b08] px-2.5 text-xs text-white outline-none"
+                    className="h-9 sm:h-8 w-full rounded-md border border-zinc-800 bg-[#080b08] px-2.5 text-xs text-white outline-none"
                   />
                   <div className="flex gap-2">
-                    <button className="flex-1 h-8 rounded-md bg-lime-400 text-xs font-bold text-[#080b08] hover:bg-lime-300">
+                    <button className="flex-1 h-9 sm:h-8 rounded-md bg-lime-400 text-xs font-bold text-[#080b08] hover:bg-lime-300">
                       Cambiar video
                     </button>
                     {room?.videoId && (
                       <button
                         type="button"
                         onClick={clearContent}
-                        className="h-8 px-2.5 rounded-md border border-red-500/30 bg-red-500/10 text-xs font-semibold text-red-400 hover:bg-red-500/20"
+                        className="h-9 sm:h-8 px-2.5 rounded-md border border-red-500/30 bg-red-500/10 text-xs font-semibold text-red-400 hover:bg-red-500/20"
                         title="Quitar video"
                       >
                         Quitar
@@ -2936,13 +2936,13 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                           ? "Chat locked by the host"
                           : "Write a message..."
                       }
-                      className="h-10 min-w-0 flex-1 rounded-lg border border-zinc-800 bg-[#080b08] px-3 font-body text-sm text-white outline-none focus:border-lime-400/50"
+                      className="h-11 sm:h-10 min-w-0 flex-1 rounded-lg border border-zinc-800 bg-[#080b08] px-3 font-body text-sm text-white outline-none focus:border-lime-400/50"
                     />
                     <button
                       type="button"
                       disabled={room?.chatLocked}
                       onClick={sendMessage}
-                      className="h-10 rounded-lg bg-lime-400 px-4 font-body text-xs font-bold text-[#080b08]"
+                      className="h-11 sm:h-10 rounded-lg bg-lime-400 px-4 font-body text-xs font-bold text-[#080b08]"
                     >
                       Send
                     </button>
@@ -3020,15 +3020,15 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                       setQueueError("");
                     }}
                     placeholder="YouTube URL, Shorts or ID"
-                    className="h-10 rounded-lg border border-zinc-800 bg-[#080b08] px-3 font-body text-sm text-white outline-none focus:border-lime-400/50"
+                    className="h-11 sm:h-10 rounded-lg border border-zinc-800 bg-[#080b08] px-3 font-body text-sm text-white outline-none focus:border-lime-400/50"
                   />
                   <input
                     value={queueTitleInput}
                     onChange={(event) => setQueueTitleInput(event.target.value)}
                     placeholder="Title"
-                    className="h-10 rounded-lg border border-zinc-800 bg-[#080b08] px-3 font-body text-sm text-white outline-none focus:border-lime-400/50"
+                    className="h-11 sm:h-10 rounded-lg border border-zinc-800 bg-[#080b08] px-3 font-body text-sm text-white outline-none focus:border-lime-400/50"
                   />
-                  <button className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-zinc-700 px-4 font-body text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-lime-400 hover:text-lime-400">
+                  <button className="inline-flex h-11 sm:h-10 items-center justify-center gap-2 rounded-lg border border-zinc-700 px-4 font-body text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-lime-400 hover:text-lime-400">
                     <IoAdd /> Add video
                   </button>
                   {isHost && (
@@ -3038,7 +3038,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                         socketRef.current?.emit("play-next", roomId)
                       }
                       disabled={!room?.queue.length}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-lime-400 px-4 font-body text-[10px] font-bold uppercase tracking-wider text-[#080b08] disabled:bg-zinc-700 disabled:text-zinc-500"
+                      className="inline-flex h-11 sm:h-10 items-center justify-center gap-2 rounded-lg bg-lime-400 px-4 font-body text-[10px] font-bold uppercase tracking-wider text-[#080b08] disabled:bg-zinc-700 disabled:text-zinc-500"
                     >
                       <IoPlaySkipForward /> Next video
                     </button>
@@ -3129,10 +3129,10 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                                 participant.socketId,
                               )
                             }
-                            className="opacity-0 transition group-hover:opacity-100 text-zinc-600 hover:text-red-400"
+                            className="p-1 text-zinc-500 opacity-100 transition hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100"
                             aria-label={`Remove ${participant.userId}`}
                           >
-                            <IoClose />
+                            <IoClose className="text-base" />
                           </button>
                         )}
                       </div>

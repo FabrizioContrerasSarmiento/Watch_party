@@ -32,7 +32,7 @@ export default async function DashboardPage() {
       <DashboardSidebar user={user} profile={profile} />
 
       {/* CONTENT */}
-      <div className="min-h-screen pl-20 lg:pl-64">
+      <div className="min-h-screen pl-0 lg:pl-64">
         <div className="mx-auto w-full max-w-7xl px-6 pb-10 lg:px-10">
           {/* BANNER */}
           <section className="relative w-full overflow-hidden">

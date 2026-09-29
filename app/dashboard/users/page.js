@@ -41,7 +41,7 @@ export default async function UsersPage() {
     <main className="min-h-screen bg-[#080b08] text-zinc-100">
       <DashboardSidebar user={user} profile={profile} />
 
-      <div className="min-h-screen pl-20 lg:pl-64">
+      <div className="min-h-screen pl-0 lg:pl-64">
         {/* HEADER */}
         <header className="border-b border-zinc-800 bg-[#080b08]">
           <div className="mx-auto w-full max-w-7xl px-6 py-8 lg:px-10">
