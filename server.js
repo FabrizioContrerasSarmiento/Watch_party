@@ -17,9 +17,6 @@ const io = new Server(server, {
   },
 });
 
-app.use(cors());
-app.use(express.json());
-
 const rooms = new Map();
 
 function createRoom() {
@@ -109,7 +106,12 @@ function changeVideo(roomId, room, video) {
   broadcastRoom(roomId);
 }
 
-app.get("/api/rooms", (req, res) => {
+// Ensure Next.js handles /api/rooms/verify directly without touching room params
+app.get("/api/rooms/verify", (req, res) => {
+  return nextHandler(req, res);
+});
+
+app.get("/api/rooms", cors(), (req, res) => {
   res.json(
     Array.from(rooms.entries()).map(([roomId, room]) => ({
       roomId,
@@ -123,11 +125,8 @@ app.get("/api/rooms", (req, res) => {
   );
 });
 
-app.get("/api/rooms/:roomId", (req, res, nextMiddleware) => {
+app.get("/api/rooms/:roomId", cors(), (req, res) => {
   const targetId = req.params.roomId;
-  if (targetId === "verify") {
-    return nextMiddleware();
-  }
   let room = rooms.get(targetId);
   if (!room) {
     for (const [key, val] of rooms.entries()) {
@@ -140,11 +139,8 @@ app.get("/api/rooms/:roomId", (req, res, nextMiddleware) => {
   return res.json({ roomId: targetId, ...roomState(room) });
 });
 
-app.delete("/api/rooms/:roomId", (req, res, nextMiddleware) => {
+app.delete("/api/rooms/:roomId", cors(), (req, res) => {
   const targetId = req.params.roomId;
-  if (targetId === "verify") {
-    return nextMiddleware();
-  }
   let deleted = false;
   if (rooms.has(targetId)) {
     rooms.delete(targetId);

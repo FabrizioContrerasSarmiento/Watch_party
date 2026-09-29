@@ -54,8 +54,7 @@ export async function GET(request) {
 
   const internalPort = process.env.PORT || 3000;
   const socketUrl =
-    process.env.NEXT_PUBLIC_SOCKET_URL ||
-    `http://127.0.0.1:${internalPort}`;
+    process.env.NEXT_PUBLIC_SOCKET_URL || `http://127.0.0.1:${internalPort}`;
 
   // 1. Check if room is active in Socket.IO server
   try {
