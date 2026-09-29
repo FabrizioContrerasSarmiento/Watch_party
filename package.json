@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node server.js",
     "prebuild": "next telemetry disable",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.js",
     "server": "node server.js",
-    "dev:all": "concurrently \"yarn server\" \"yarn dev\"",
+    "dev:all": "node server.js",
     "lint": "eslint"
   },
   "dependencies": {

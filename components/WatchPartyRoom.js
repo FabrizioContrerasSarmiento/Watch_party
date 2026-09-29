@@ -34,8 +34,13 @@ import YouTubePlayer from "./YouTubePlayer";
 import { deleteWatchPartyAction } from "@/app/watch-party/actions";
 
 const REACTIONS = ["😂", "❤️", "😱", "😡", "🔥", "👀"];
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
+
+function getClientSocketUrl() {
+  if (SOCKET_URL) return SOCKET_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+}
 
 const RTC_CONFIG = {
   iceServers: [
@@ -1197,7 +1202,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
 
   // Master Socket & cleanup effect
   useEffect(() => {
-    const socket = io(SOCKET_URL, { reconnection: true });
+    const socket = io(getClientSocketUrl(), { reconnection: true });
     socketRef.current = socket;
 
     const joinRoom = () => {

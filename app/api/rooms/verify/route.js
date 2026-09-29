@@ -52,17 +52,29 @@ export async function GET(request) {
     );
   }
 
+  const internalPort = process.env.PORT || 3000;
   const socketUrl =
-    process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    process.env.NEXT_PUBLIC_SOCKET_URL ||
+    `http://127.0.0.1:${internalPort}`;
 
   // 1. Check if room is active in Socket.IO server
   try {
-    const socketRes = await fetch(
-      `${socketUrl}/api/rooms/${encodeURIComponent(cleanCode)}`,
-      { cache: "no-store" },
-    );
+    let socketRes;
+    try {
+      socketRes = await fetch(
+        `${socketUrl}/api/rooms/${encodeURIComponent(cleanCode)}`,
+        { cache: "no-store" },
+      );
+    } catch {
+      // Fallback to request origin if loopback address was not reached
+      const origin = new URL(request.url).origin;
+      socketRes = await fetch(
+        `${origin}/api/rooms/${encodeURIComponent(cleanCode)}`,
+        { cache: "no-store" },
+      );
+    }
 
-    if (socketRes.ok) {
+    if (socketRes && socketRes.ok) {
       const data = await socketRes.json();
       return Response.json({
         valid: true,

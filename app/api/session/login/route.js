@@ -18,7 +18,10 @@ export async function POST(request) {
   const { idToken } = body || {};
 
   if (!idToken) {
-    return NextResponse.json({ error: "Missing Firebase ID token." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing Firebase ID token." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -29,7 +32,10 @@ export async function POST(request) {
     try {
       await ensureUserProfile(decodedToken);
     } catch (profileError) {
-      console.warn("[SESSION_LOGIN_WARN] Failed to sync user profile to Firestore:", profileError?.message || profileError);
+      console.warn(
+        "[SESSION_LOGIN_WARN] Failed to sync user profile to Firestore:",
+        profileError?.message || profileError,
+      );
     }
 
     const sessionCookie = await createSessionCookie(idToken);
@@ -45,7 +51,10 @@ export async function POST(request) {
 
     return response;
   } catch (error) {
-    console.error("[SESSION_LOGIN_ERROR] Could not create server session:", error?.message || error);
+    console.error(
+      "[SESSION_LOGIN_ERROR] Could not create server session:",
+      error?.message || error,
+    );
     return NextResponse.json(
       { error: "Could not create a server session." },
       { status: 401 },

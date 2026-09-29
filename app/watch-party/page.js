@@ -17,9 +17,12 @@ export default function Home() {
   const loadRooms = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3001/api/rooms");
+      const apiUrl = process.env.NEXT_PUBLIC_SOCKET_URL
+        ? `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/rooms`
+        : "/api/rooms";
+      const response = await fetch(apiUrl);
       const data = await response.json();
-      setRooms(data);
+      setRooms(Array.isArray(data) ? data : []);
       console.log("Salas cargadas:", data);
     } catch (error) {
       console.error("Error al cargar salas:", error);
@@ -34,7 +37,10 @@ export default function Home() {
     }, 0);
 
     // Conectar a Socket.io para actualizaciones en tiempo real
-    const socket = io("http://localhost:3001");
+    const socketTarget =
+      process.env.NEXT_PUBLIC_SOCKET_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "");
+    const socket = io(socketTarget);
 
     socket.on("rooms-updated", () => {
       console.log("Salas actualizadas");

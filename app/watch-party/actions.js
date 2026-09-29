@@ -28,8 +28,9 @@ export async function deleteWatchPartyAction(roomId) {
 
     // Notificar al servidor Socket.IO para eliminar la sala de memoria y avisar a participantes
     try {
+      const port = process.env.PORT || 3000;
       const socketUrl =
-        process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+        process.env.NEXT_PUBLIC_SOCKET_URL || `http://127.0.0.1:${port}`;
       await fetch(`${socketUrl}/api/rooms/${encodeURIComponent(roomId)}`, {
         method: "DELETE",
       });

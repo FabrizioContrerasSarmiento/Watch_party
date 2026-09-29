@@ -2,10 +2,20 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import next from "next";
+
+const dev = process.env.NODE_ENV !== "production";
+const nextApp = next({ dev });
+const nextHandler = nextApp.getRequestHandler();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors());
 app.use(express.json());
@@ -113,8 +123,11 @@ app.get("/api/rooms", (req, res) => {
   );
 });
 
-app.get("/api/rooms/:roomId", (req, res) => {
+app.get("/api/rooms/:roomId", (req, res, nextMiddleware) => {
   const targetId = req.params.roomId;
+  if (targetId === "verify") {
+    return nextMiddleware();
+  }
   let room = rooms.get(targetId);
   if (!room) {
     for (const [key, val] of rooms.entries()) {
@@ -127,8 +140,11 @@ app.get("/api/rooms/:roomId", (req, res) => {
   return res.json({ roomId: targetId, ...roomState(room) });
 });
 
-app.delete("/api/rooms/:roomId", (req, res) => {
+app.delete("/api/rooms/:roomId", (req, res, nextMiddleware) => {
   const targetId = req.params.roomId;
+  if (targetId === "verify") {
+    return nextMiddleware();
+  }
   let deleted = false;
   if (rooms.has(targetId)) {
     rooms.delete(targetId);
@@ -793,7 +809,21 @@ io.on("connection", (socket) => {
   socket.on("disconnect", leaveAllRooms);
 });
 
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, "0.0.0.0", () =>
-  console.log(`Servidor escuchando en puerto ${PORT}`),
-);
+// Express 5 wildcard to delegate all remaining routes to Next.js (App Router, API routes, SSR, assets)
+app.all("/{*path}", (req, res) => {
+  return nextHandler(req, res);
+});
+
+const PORT = parseInt(process.env.PORT || "3000", 10);
+
+async function startServer() {
+  await nextApp.prepare();
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`> Servidor listo en http://0.0.0.0:${PORT} (dev: ${dev})`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error("Error fatal al iniciar el servidor:", err);
+  process.exit(1);
+});
