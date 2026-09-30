@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
+import { generateRoomCode, normalizeRoomCode } from "@/lib/parties/roomCodes";
 
 export default function Home() {
   const router = useRouter();
@@ -54,14 +55,15 @@ export default function Home() {
   }, []);
 
   const generateRoom = () => {
-    const newRoom = `room-${Math.random().toString(36).substr(2, 9)}`;
+    const newRoom = generateRoomCode();
     setGeneratedRoom(newRoom);
     setRoomId(newRoom);
   };
 
   const joinRoom = async () => {
-    const clean = roomId.trim();
+    const clean = normalizeRoomCode(roomId);
     if (!clean) return;
+    setRoomId(clean);
     setJoinLoading(true);
     setJoinError("");
     try {
@@ -134,7 +136,7 @@ export default function Home() {
               <h3>Unirse a una Sala Existente</h3>
               <input
                 type="text"
-                placeholder="Ingresa el ID de la sala o URL"
+                placeholder="Código de sala (ej. A7K2P9) o URL"
                 value={roomId}
                 disabled={joinLoading}
                 onChange={(e) => {

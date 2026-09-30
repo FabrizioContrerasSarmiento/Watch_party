@@ -390,7 +390,7 @@ export default async function DashboardPage() {
                           </div>
 
                           <Link
-                            href={`/dashboard/parties/${party.id}`}
+                            href={`/watch-party/${party.roomCode}`}
                             className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700 px-4 font-body text-xs font-bold text-zinc-300 transition hover:border-lime-400/50 hover:text-lime-400"
                           >
                             Open

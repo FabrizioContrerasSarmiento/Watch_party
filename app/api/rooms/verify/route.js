@@ -1,52 +1,27 @@
 import { getDb } from "@/lib/firebase/firestore";
-
-function extractRoomCode(rawInput) {
-  if (!rawInput) return "";
-  let input = String(rawInput).trim();
-
-  // If user pasted a full URL (e.g. from "Copy invite"), extract the roomId
-  if (input.includes("://") || input.includes("/watch-party/")) {
-    try {
-      const url = new URL(input.includes("://") ? input : `https://${input}`);
-      const parts = url.pathname.split("/").filter(Boolean);
-      const watchPartyIndex = parts.indexOf("watch-party");
-      if (watchPartyIndex !== -1 && parts[watchPartyIndex + 1]) {
-        input = parts[watchPartyIndex + 1];
-      } else if (parts.length > 0) {
-        input = parts[parts.length - 1];
-      }
-    } catch {
-      // Fallback: extract substring after watch-party/
-      const match = input.match(/watch-party\/([a-zA-Z0-9_-]+)/i);
-      if (match) input = match[1];
-    }
-  }
-
-  // Remove trailing slashes or query strings
-  input = input.split("?")[0].split("#")[0].replace(/\/$/, "").trim();
-  return input;
-}
+import { normalizeRoomCode, isValidRoomCode } from "@/lib/parties/roomCodes";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const rawCode = searchParams.get("code");
 
-  const cleanCode = extractRoomCode(rawCode);
+  const normalizedCode = normalizeRoomCode(rawCode);
+  const rawClean = String(rawCode || "").trim();
 
-  if (!cleanCode || cleanCode.length < 3) {
+  if (!normalizedCode) {
     return Response.json(
       { valid: false, error: "Por favor, ingresá un código de sala válido." },
       { status: 400 },
     );
   }
 
-  // Validate character format
-  if (!/^[a-zA-Z0-9_-]{3,60}$/.test(cleanCode)) {
+  // Validación: exactamente 6 caracteres alfanuméricos después de normalizar
+  if (!isValidRoomCode(normalizedCode)) {
     return Response.json(
       {
         valid: false,
         error:
-          "El formato del código no es válido. Solo letras, números y guiones.",
+          "El código de sala debe tener exactamente 6 caracteres (letras y números).",
       },
       { status: 400 },
     );
@@ -55,59 +30,98 @@ export async function GET(request) {
   const internalPort = process.env.PORT || 3000;
   const socketUrl =
     process.env.NEXT_PUBLIC_SOCKET_URL || `http://127.0.0.1:${internalPort}`;
+  const origin = new URL(request.url).origin;
 
-  // 1. Check if room is active in Socket.IO server
+  // Helper para consultar la API de salas de Socket.IO
+  async function checkSocketRoom(codeToCheck) {
+    if (!codeToCheck) return null;
+    const urls = [
+      `${socketUrl}/api/rooms/${encodeURIComponent(codeToCheck)}`,
+      `${origin}/api/rooms/${encodeURIComponent(codeToCheck)}`,
+    ];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          return data;
+        }
+      } catch {
+        // Intentar siguiente URL
+      }
+    }
+    return null;
+  }
+
+  // 1. Verificar si la sala está activa en Socket.IO (nuevo código o código legacy)
   try {
-    let socketRes;
-    try {
-      socketRes = await fetch(
-        `${socketUrl}/api/rooms/${encodeURIComponent(cleanCode)}`,
-        { cache: "no-store" },
-      );
-    } catch {
-      // Fallback to request origin if loopback address was not reached
-      const origin = new URL(request.url).origin;
-      socketRes = await fetch(
-        `${origin}/api/rooms/${encodeURIComponent(cleanCode)}`,
-        { cache: "no-store" },
-      );
+    let socketData = await checkSocketRoom(normalizedCode);
+    if (!socketData && rawClean && rawClean !== normalizedCode) {
+      socketData = await checkSocketRoom(rawClean);
+    }
+    if (!socketData) {
+      socketData = await checkSocketRoom(`ROOM-${normalizedCode}`);
     }
 
-    if (socketRes && socketRes.ok) {
-      const data = await socketRes.json();
+    if (socketData && socketData.roomId) {
       return Response.json({
         valid: true,
-        roomId: data.roomId || cleanCode,
+        roomId: socketData.roomId,
       });
     }
   } catch (err) {
     console.warn("Could not reach socket server:", err.message);
   }
 
-  // 2. Check if room exists in Firestore parties
+  // 2. Verificar si la sala existe en Firestore parties
   try {
     const db = getDb();
+
+    // 2a. Buscar por código normalizado (estándar nuevo: LNATJP)
     const exactSnap = await db
       .collection("parties")
-      .where("roomCode", "==", cleanCode)
+      .where("roomCode", "==", normalizedCode)
       .limit(1)
       .get();
 
     if (!exactSnap.empty) {
-      return Response.json({ valid: true, roomId: cleanCode });
+      const docData = exactSnap.docs[0].data();
+      return Response.json({
+        valid: true,
+        roomId: docData.roomCode || normalizedCode,
+      });
     }
 
-    // Try uppercase format (standard ROOM-XXXXXX)
-    const upperCode = cleanCode.toUpperCase();
-    if (upperCode !== cleanCode) {
-      const upperSnap = await db
+    // 2b. Buscar por formato legacy para compatibilidad (ROOM-LNATJP)
+    const legacyCode = `ROOM-${normalizedCode}`;
+    const legacySnap = await db
+      .collection("parties")
+      .where("roomCode", "==", legacyCode)
+      .limit(1)
+      .get();
+
+    if (!legacySnap.empty) {
+      const docData = legacySnap.docs[0].data();
+      return Response.json({
+        valid: true,
+        roomId: docData.roomCode || legacyCode,
+      });
+    }
+
+    // 2c. Si el código ingresado en crudo difería de ambos, buscarlo directamente
+    if (rawClean && rawClean !== normalizedCode && rawClean !== legacyCode) {
+      const rawSnap = await db
         .collection("parties")
-        .where("roomCode", "==", upperCode)
+        .where("roomCode", "==", rawClean)
         .limit(1)
         .get();
 
-      if (!upperSnap.empty) {
-        return Response.json({ valid: true, roomId: upperCode });
+      if (!rawSnap.empty) {
+        const docData = rawSnap.docs[0].data();
+        return Response.json({
+          valid: true,
+          roomId: docData.roomCode || rawClean,
+        });
       }
     }
   } catch (firestoreErr) {

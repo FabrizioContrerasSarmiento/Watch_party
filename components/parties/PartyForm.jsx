@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createParty } from "@/app/dashboard/parties/new/actions";
+import {
+  createParty,
+  generatePartyRoomCode,
+} from "@/app/dashboard/parties/new/actions";
+import {
+  generateRoomCode as fallbackGenerateCode,
+  normalizeRoomCode,
+} from "@/lib/parties/roomCodes";
 
 import {
   IoArrowBack,
@@ -21,11 +28,23 @@ export default function PartyForm() {
   const [videoUrl, setVideoUrl] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [generatingCode, setGeneratingCode] = useState(false);
   const [error, setError] = useState("");
 
-  function generateRoomCode() {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setRoomCode(`ROOM-${code}`);
+  async function handleGenerateCode() {
+    setGeneratingCode(true);
+    try {
+      const res = await generatePartyRoomCode();
+      if (res?.success && res.code) {
+        setRoomCode(res.code);
+      } else {
+        setRoomCode(fallbackGenerateCode());
+      }
+    } catch {
+      setRoomCode(fallbackGenerateCode());
+    } finally {
+      setGeneratingCode(false);
+    }
   }
 
   async function handleSubmit(event) {
@@ -141,26 +160,29 @@ export default function PartyForm() {
                     name="roomCode"
                     type="text"
                     required
+                    maxLength={6}
                     value={roomCode}
-                    onChange={(event) =>
-                      setRoomCode(event.target.value.toUpperCase())
-                    }
-                    placeholder="ROOM-ABC123"
-                    className="h-12 w-full rounded-lg border border-zinc-800 bg-[#080b08] pl-11 pr-4 font-body text-sm font-semibold tracking-[0.08em] text-white outline-none transition-all placeholder:text-zinc-600 focus:border-lime-400/60 focus:ring-1 focus:ring-lime-400/20"
+                    onChange={(event) => {
+                      const normalized = normalizeRoomCode(event.target.value);
+                      setRoomCode(normalized.slice(0, 6));
+                    }}
+                    placeholder="A7K2P9"
+                    className="h-12 w-full rounded-lg border border-zinc-800 bg-[#080b08] pl-11 pr-4 font-mono text-sm font-bold tracking-[0.14em] text-lime-400 outline-none transition-all placeholder:font-sans placeholder:tracking-normal placeholder:text-zinc-600 focus:border-lime-400/60 focus:ring-1 focus:ring-lime-400/20"
                   />
                 </div>
 
                 <button
                   type="button"
-                  onClick={generateRoomCode}
-                  className="h-12 shrink-0 rounded-lg border border-zinc-700 px-5 font-body text-xs font-bold uppercase tracking-[0.08em] text-zinc-300 transition-all hover:border-lime-400 hover:text-lime-400"
+                  onClick={handleGenerateCode}
+                  disabled={generatingCode}
+                  className="h-12 shrink-0 rounded-lg border border-zinc-700 px-5 font-body text-xs font-bold uppercase tracking-[0.08em] text-zinc-300 transition-all hover:border-lime-400 hover:text-lime-400 disabled:opacity-50"
                 >
-                  Generate
+                  {generatingCode ? "Generating..." : "Generate"}
                 </button>
               </div>
 
               <p className="mt-2 font-body text-xs font-medium text-zinc-600">
-                Share this code with the people you want to invite.
+                Share this 6-character code with the people you want to invite.
               </p>
             </div>
 

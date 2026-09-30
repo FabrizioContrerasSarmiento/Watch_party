@@ -129,8 +129,13 @@ app.get("/api/rooms/:roomId", cors(), (req, res) => {
   const targetId = req.params.roomId;
   let room = rooms.get(targetId);
   if (!room) {
+    const normTarget = targetId.toUpperCase().replace(/^ROOM[-_:]?/, "").replace(/[\s-]/g, "");
     for (const [key, val] of rooms.entries()) {
-      if (key.toLowerCase() === targetId.toLowerCase()) {
+      const normKey = key.toUpperCase().replace(/^ROOM[-_:]?/, "").replace(/[\s-]/g, "");
+      if (
+        key.toLowerCase() === targetId.toLowerCase() ||
+        (normTarget && normKey === normTarget)
+      ) {
         return res.json({ roomId: key, ...roomState(val) });
       }
     }
@@ -141,14 +146,22 @@ app.get("/api/rooms/:roomId", cors(), (req, res) => {
 
 app.delete("/api/rooms/:roomId", cors(), (req, res) => {
   const targetId = req.params.roomId;
+  const normTarget = targetId.toUpperCase().replace(/^ROOM[-_:]?/, "").replace(/[\s-]/g, "");
   let deleted = false;
+  let actualKey = targetId;
+
   if (rooms.has(targetId)) {
     rooms.delete(targetId);
     deleted = true;
   }
   for (const [key] of rooms.entries()) {
-    if (key.toLowerCase() === targetId.toLowerCase()) {
+    const normKey = key.toUpperCase().replace(/^ROOM[-_:]?/, "").replace(/[\s-]/g, "");
+    if (
+      key.toLowerCase() === targetId.toLowerCase() ||
+      (normTarget && normKey === normTarget)
+    ) {
       rooms.delete(key);
+      actualKey = key;
       deleted = true;
     }
   }
@@ -157,6 +170,13 @@ app.delete("/api/rooms/:roomId", cors(), (req, res) => {
       roomId: targetId,
       message: "Esta Watch Party fue eliminada por el host.",
     });
+    if (actualKey !== targetId) {
+      io.to(actualKey).emit("room-deleted", {
+        roomId: actualKey,
+        message: "Esta Watch Party fue eliminada por el host.",
+      });
+      io.in(actualKey).socketsLeave(actualKey);
+    }
     io.in(targetId).socketsLeave(targetId);
     io.emit("rooms-updated");
     return res.json({ success: true });

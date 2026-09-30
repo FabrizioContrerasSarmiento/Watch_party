@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FiLogIn } from "react-icons/fi";
 import { IoClose, IoSparklesOutline } from "react-icons/io5";
+import { normalizeRoomCode } from "@/lib/parties/roomCodes";
 
 export default function JoinByCodeModal({
   variant = "button", // "button" | "modal-only"
@@ -63,11 +64,12 @@ export default function JoinByCodeModal({
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    const clean = code.trim();
+    const clean = normalizeRoomCode(code);
     if (!clean) {
-      setError("Por favor, ingresá un código de sala.");
+      setError("Por favor, ingresá un código de sala válido.");
       return;
     }
+    setCode(clean);
 
     setLoading(true);
     setError("");
@@ -176,10 +178,15 @@ export default function JoinByCodeModal({
                     value={code}
                     disabled={loading}
                     onChange={(e) => {
-                      setCode(e.target.value);
+                      setCode(e.target.value.toUpperCase());
                       setError("");
                     }}
-                    placeholder="ROOM-0SC01S"
+                    onBlur={() => {
+                      if (code.trim()) {
+                        setCode(normalizeRoomCode(code));
+                      }
+                    }}
+                    placeholder="Ej: A7K2P9"
                     className="h-12 w-full rounded-xl border border-zinc-800 bg-[#080b08] px-4 font-mono text-sm font-bold tracking-widest text-lime-400 placeholder:font-sans placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-zinc-600 outline-none transition focus:border-lime-400/80 focus:ring-1 focus:ring-lime-400/20 disabled:opacity-50"
                   />
                   {code && (
