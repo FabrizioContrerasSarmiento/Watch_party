@@ -2,56 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { io } from "socket.io-client";
 import { generateRoomCode, normalizeRoomCode } from "@/lib/parties/roomCodes";
+import { subscribeToRealtimeRooms } from "@/lib/firebase/realtimeSocket";
 
 export default function Home() {
   const router = useRouter();
   const [roomId, setRoomId] = useState("");
   const [generatedRoom, setGeneratedRoom] = useState("");
   const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
-  const socketRef = useState(null)[1];
-
-  const loadRooms = async () => {
-    try {
-      setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_SOCKET_URL
-        ? `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/rooms`
-        : "/api/rooms";
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      setRooms(Array.isArray(data) ? data : []);
-      console.log("Salas cargadas:", data);
-    } catch (error) {
-      console.error("Error al cargar salas:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  // Cargar salas al montar
+  // Suscribirse a las salas activas mediante Firebase Realtime Database.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadRooms();
-    }, 0);
-
-    // Conectar a Socket.io para actualizaciones en tiempo real
-    const socketTarget =
-      process.env.NEXT_PUBLIC_SOCKET_URL ||
-      (typeof window !== "undefined" ? window.location.origin : "");
-    const socket = io(socketTarget);
-
-    socket.on("rooms-updated", () => {
-      console.log("Salas actualizadas");
-      loadRooms();
-    });
-
-    return () => {
-      clearTimeout(timer);
-      socket.disconnect();
-    };
+    return subscribeToRealtimeRooms(
+      (activeRooms) => {
+        setRooms(activeRooms);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error al cargar salas en tiempo real:", error);
+        setLoading(false);
+      },
+    );
   }, []);
 
   const generateRoom = () => {

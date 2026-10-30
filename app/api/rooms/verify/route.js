@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/firebase/firestore";
+import { getAdminRealtimeDatabase } from "@/lib/firebase/realtimeAdmin";
 import { normalizeRoomCode, isValidRoomCode } from "@/lib/parties/roomCodes";
 
 export async function GET(request) {
@@ -27,53 +28,25 @@ export async function GET(request) {
     );
   }
 
-  const internalPort = process.env.PORT || 3000;
-  const socketUrl =
-    process.env.NEXT_PUBLIC_SOCKET_URL || `http://127.0.0.1:${internalPort}`;
-  const origin = new URL(request.url).origin;
-
-  // Helper para consultar la API de salas de Socket.IO
-  async function checkSocketRoom(codeToCheck) {
-    if (!codeToCheck) return null;
-    const urls = [
-      `${socketUrl}/api/rooms/${encodeURIComponent(codeToCheck)}`,
-      `${origin}/api/rooms/${encodeURIComponent(codeToCheck)}`,
-    ];
-    for (const url of urls) {
-      try {
-        const res = await fetch(url, { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          return data;
-        }
-      } catch {
-        // Intentar siguiente URL
-      }
-    }
-    return null;
-  }
-
-  // 1. Verificar si la sala está activa en Socket.IO (nuevo código o código legacy)
+  // 1. Verificar si la sala ya está activa en Realtime Database.
   try {
-    let socketData = await checkSocketRoom(normalizedCode);
-    if (!socketData && rawClean && rawClean !== normalizedCode) {
-      socketData = await checkSocketRoom(rawClean);
-    }
-    if (!socketData) {
-      socketData = await checkSocketRoom(`ROOM-${normalizedCode}`);
-    }
-
-    if (socketData && socketData.roomId) {
+    const snapshot = await getAdminRealtimeDatabase()
+      .ref(`watchPartyRooms/${normalizedCode}/state`)
+      .get();
+    if (snapshot.exists() && snapshot.val()?.status !== "deleted") {
       return Response.json({
         valid: true,
-        roomId: socketData.roomId,
+        roomId: normalizedCode,
       });
     }
-  } catch (err) {
-    console.warn("Could not reach socket server:", err.message);
+  } catch (realtimeError) {
+    console.warn(
+      "Could not query Firebase Realtime Database:",
+      realtimeError.message,
+    );
   }
 
-  // 2. Verificar si la sala existe en Firestore parties
+  // 2. Verificar si la sala existe en Firestore parties.
   try {
     const db = getDb();
 

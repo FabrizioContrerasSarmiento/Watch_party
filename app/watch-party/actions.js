@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/firebase/session";
+import { getAdminRealtimeDatabase } from "@/lib/firebase/realtimeAdmin";
 import { deletePartyByRoomCode } from "@/lib/parties/parties";
+import { normalizeRoomCode } from "@/lib/parties/roomCodes";
 
 export async function deleteWatchPartyAction(roomId) {
   try {
@@ -26,16 +28,20 @@ export async function deleteWatchPartyAction(roomId) {
       return result;
     }
 
-    // Notificar al servidor Socket.IO para eliminar la sala de memoria y avisar a participantes
+    // Marcar la sala como eliminada para notificar a todos los clientes conectados.
     try {
-      const port = process.env.PORT || 3000;
-      const socketUrl =
-        process.env.NEXT_PUBLIC_SOCKET_URL || `http://127.0.0.1:${port}`;
-      await fetch(`${socketUrl}/api/rooms/${encodeURIComponent(roomId)}`, {
-        method: "DELETE",
+      const normalizedRoomId = normalizeRoomCode(roomId);
+      await getAdminRealtimeDatabase()
+        .ref(`watchPartyRooms/${normalizedRoomId}/state`)
+        .update({
+          status: "deleted",
+          deletedAt: Date.now(),
+          deletedMessage: "Esta Watch Party fue eliminada por el host.",
+        });
+    } catch (realtimeError) {
+      console.warn("No se pudo notificar la eliminación en tiempo real:", {
+        message: realtimeError?.message,
       });
-    } catch {
-      // Ignorar si el servidor de socket no está disponible
     }
 
     revalidatePath("/dashboard");

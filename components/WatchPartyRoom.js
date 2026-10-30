@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { io } from "socket.io-client";
 import { FiArrowLeft } from "react-icons/fi";
 import {
   IoAdd,
@@ -32,16 +31,9 @@ import {
 } from "react-icons/io5";
 import YouTubePlayer from "./YouTubePlayer";
 import { deleteWatchPartyAction } from "@/app/watch-party/actions";
+import { createRealtimeSocket } from "@/lib/firebase/realtimeSocket";
 
 const REACTIONS = ["😂", "❤️", "😱", "😡", "🔥", "👀"];
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
-
-function getClientSocketUrl() {
-  if (SOCKET_URL) return SOCKET_URL;
-  if (typeof window !== "undefined") return window.location.origin;
-  return "";
-}
-
 const RTC_CONFIG = {
   iceServers: [
     {
@@ -1200,9 +1192,9 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
     pointerStartRef.current = null;
   };
 
-  // Master Socket & cleanup effect
+  // Firebase Realtime Database transport & cleanup effect
   useEffect(() => {
-    const socket = io(getClientSocketUrl(), { reconnection: true });
+    const socket = createRealtimeSocket();
     socketRef.current = socket;
 
     const joinRoom = () => {
@@ -3051,8 +3043,7 @@ export default function WatchPartyRoom({ roomId, userId, userUid }) {
                 )}
                 {!socketConnected && (
                   <p className="mt-2 font-body text-xs font-medium text-amber-400">
-                    Real-time server offline. Run <code>npm run dev:all</code>{" "}
-                    to enable the queue and reactions.
+                    No se pudo conectar con Firebase Realtime Database.
                   </p>
                 )}
               </section>

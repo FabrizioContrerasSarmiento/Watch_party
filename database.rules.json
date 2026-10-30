@@ -1,0 +1,22 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "watchPartyRooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".indexOn": [
+          "state/lastUpdateTime",
+          "state/status"
+        ],
+        "events": {
+          ".indexOn": ["timestamp"]
+        },
+        "reactions": {
+          ".indexOn": ["timestamp"]
+        }
+      }
+    }
+  }
+}
